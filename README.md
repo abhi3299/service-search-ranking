@@ -16,6 +16,7 @@ It runs entirely in the browser — nothing to install, no server, no terminal.
 Type a query, switch personas in the header, watch the ordering change.
 
 356 passing checks · [Why bands, not a score](#why-bands-and-not-a-weighted-score)
+· [What it's based on](#what-each-decision-is-based-on)
 
 ---
 
@@ -108,6 +109,38 @@ one.
 It also makes the behaviour testable. "Every *Full Legs* service outranks every
 *Half Legs* service for the query *full legs waxing*" is a property you can
 assert. Against a weighted score it is not.
+
+## What each decision is based on
+
+Every stage keys off something specific and nameable. No stage uses a tuned
+weight, and no signal is read from SEO keyword fields — those are written to
+win traffic and will say anything.
+
+| Stage | Reads | Decides on |
+|---|---|---|
+| Suggestions | Order volume, query length, her history | Demand per word, with near-duplicate queries dropped on result overlap |
+| Spelling | The catalogue's own vocabulary | Edit distance with transposition, budget scaled to word length |
+| The lift | Sub-category **names** only | How much of the hall's name the query actually covers |
+| Retrieval | Service names, tags, sub-category | Lexical and vector run in parallel, fused by rank |
+| Bands | Which query words matched, and where | Phrase, scattered, partial, family-only, meaning-only |
+| Scope | Words in the name she did not ask for | A count, bucketed coarsely — and switched off when nothing was narrowed |
+| The sort | All of the above, plus her orders | Seven keys compared in sequence, first difference wins |
+| Filters | The query, not the selection | Applied after the sort, so the order never changes |
+
+Two things fall out of this rather than being enforced:
+
+**Relevance is a floor, not a weight.** The band is the first key, so a result
+found only by meaning cannot outrank one that matched her words — and because
+filters run after the sort, a filtered list is always a subsequence of the
+unfiltered one. The guarantee survives every later stage.
+
+**Her history outranks the business, and the business never outranks the
+match.** Demand is asked fifth and seventh, so it can only ever separate
+results that already tied on relevance *and* on her history.
+
+Thresholds and tie-breaks are named constants at the top of each stage in
+`prototype/*.template.html`, each with a comment saying what went wrong without
+it.
 
 ## Measured result
 
