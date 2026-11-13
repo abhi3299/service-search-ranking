@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service Search Ranking — live demo</title>
+<style>
+  :root { --ink:#15131a; --mut:#6b6676; --line:#e6e2ec; --bg:#faf9fc; --accent:#6d3bd6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:56px 24px 80px; }
+  h1 { font-size:30px; line-height:1.25; margin:0 0 10px; letter-spacing:-.02em; }
+  .lede { color:var(--mut); margin:0 0 24px; font-size:17px; }
+  .note { background:#fff6e5; border:1px solid #f0dcb4; border-radius:10px;
+          padding:12px 16px; font-size:14px; margin:0 0 32px; }
+  .note b { color:#8a5a00; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.09em;
+       color:var(--mut); margin:40px 0 14px; font-weight:600; }
+  a.card { display:block; text-decoration:none; color:inherit; background:#fff;
+           border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+           margin-bottom:10px; transition:border-color .15s, transform .15s; }
+  a.card:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .row { display:flex; align-items:baseline; gap:10px; }
+  .v { font-weight:650; font-size:16px; }
+  .tag { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+         background:var(--accent); color:#fff; border-radius:20px; padding:3px 9px; }
+  .desc { color:var(--mut); font-size:14.5px; margin-top:5px; }
+  .foot { margin-top:44px; padding-top:22px; border-top:1px solid var(--line);
+          color:var(--mut); font-size:14px; }
+  .foot a { color:var(--accent); }
+  code { background:#efecf5; border-radius:4px; padding:1px 5px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Service search ranking</h1>
+  <p class="lede">A search engine for a home-services marketplace — 1,532 services
+  across seven verticals, retrieved by meaning as well as by words, and ordered by
+  a sort you can read line by line.</p>
+
+  <p class="note"><b>Synthetic data.</b> Every service, price, treatment line,
+  order count and shopper history in this demo is generated. No real customer or
+  catalogue data is present.</p>
+
+  <h2>Start here</h2>
+
+  <a class="card" href="prototype/search_v11.html">
+    <div class="row"><span class="v">Version 11</span><span class="tag">Current</span></div>
+    <div class="desc">Everything below, plus parent range cards with a view-more
+    sheet and a type-ahead dropdown that splits popular suggestions from the
+    shopper's own history.</div>
+  </a>
+
+  <h2>How it got there</h2>
+
+  <a class="card" href="prototype/search_v10_1.html">
+    <div class="v">Version 10.1</div>
+    <div class="desc">Spelling correction — Damerau–Levenshtein with transposition,
+    over a vocabulary derived from the catalogue itself.</div>
+  </a>
+
+  <a class="card" href="prototype/search_v10.html">
+    <div class="v">Version 10</div>
+    <div class="desc">Two filter layers gated by the query rather than the
+    selection, so refining never empties the screen.</div>
+  </a>
+
+  <a class="card" href="prototype/search_v9.html">
+    <div class="v">Version 9</div>
+    <div class="desc">Variant clustering — one row per treatment area instead of
+    nine near-identical rows.</div>
+  </a>
+
+  <a class="card" href="prototype/search.html">
+    <div class="v">Version 8</div>
+    <div class="desc">The baseline: hybrid lexical + vector retrieval, five
+    relevance bands, and the seven-key cascading sort.</div>
+  </a>
+
+  <div class="foot">
+    Try <code>hair removal</code>, <code>facail</code>, <code>massage</code>,
+    <code>bridal makeup</code> or <code>laser</code>. Switch personas in the
+    header to see the ranking change with order history.<br><br>
+    <a href="https://github.com/abhi3299/service-search-ranking">Source, README and
+    test suites on GitHub →</a>
+  </div>
+
+</div>
+</body>
+</html>
