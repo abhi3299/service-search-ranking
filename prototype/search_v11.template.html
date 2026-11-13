@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Service Search — v11 — relevance ranking demo (synthetic data)</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#fff; --ink:#12161b; --ink2:#4a5561; --ink3:#7b8792;
+  --line:#e4e9ed; --rule:#d5dde3;
+  --teal:#0f8a80; --tealbg:#eaf6f5;
+  --amber:#a86f08; --amberbg:#fdf3e2;
+  --red:#b23f34; --redbg:#fdeeec;
+  --blue:#2a5d9f; --bluebg:#eaf1fa;
+  --violet:#6b4a8f; --violetbg:#f2ecf8;
+  --card:#fafbfc; --code:#f1f4f7;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:30px 22px 80px}
+.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);font-weight:670;margin-bottom:10px}
+h1{font-size:31px;line-height:1.15;margin:0 0 10px;letter-spacing:-.02em;font-weight:700}
+.lede{font-size:16px;color:var(--ink2);max-width:74ch;margin:0 0 16px}
+h3{font-size:15.5px;margin:26px 0 8px;font-weight:660}
+p{margin:0 0 12px;color:var(--ink2);max-width:76ch}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);padding:2px 5px;border-radius:4px;color:#1c4f4a}
+.note{border-left:3px solid var(--teal);background:var(--tealbg);padding:12px 15px;border-radius:0 8px 8px 0;color:#0b6159;font-size:14px;margin:14px 0}
+.note.a{border-left-color:var(--amber);background:var(--amberbg);color:#6d4a06}
+.note.r{border-left-color:var(--red);background:var(--redbg);color:#7d2b22}
+.note b{font-weight:665}
+
+.rule{display:flex;gap:0;margin:16px 0;border:1px solid var(--line);border-radius:11px;overflow:hidden;flex-wrap:wrap}
+.rstep{flex:1;min-width:150px;padding:12px 14px;border-right:1px solid var(--line);background:#fff}
+.rstep:last-child{border-right:0}
+.rstep .n{font-family:var(--mono);font-size:10.5px;color:var(--teal);font-weight:700;letter-spacing:.08em}
+.rstep .t{font-weight:640;font-size:14.5px;margin:3px 0 2px}
+.rstep .d{font-size:12px;color:var(--ink3);line-height:1.4}
+
+.panel{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:15px 17px;margin:16px 0}
+.row1{display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);font-weight:660}
+.fld input,.fld select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid #cfd8de;border-radius:8px;background:#fff;color:var(--ink)}
+.fld input{min-width:240px}
+.toggles{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+.tg{display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 11px;border:1px solid #cfd8de;
+  border-radius:20px;cursor:pointer;user-select:none;background:#fff;transition:all .12s}
+.tg input{margin:0;cursor:pointer}
+.tg.on{background:var(--tealbg);border-color:#9fd0cb;color:#0b6159;font-weight:590}
+
+.words{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 4px;align-items:center}
+.words .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:660;margin-right:3px}
+.w{font-size:13px;padding:4px 10px;border-radius:16px;font-weight:590;font-family:var(--mono)}
+.w.spec{background:var(--tealbg);color:var(--teal);border:1px solid #9fd0cb}
+.w.fam{background:#eef1f4;color:var(--ink3);border:1px solid #dbe1e6}
+.w.none{background:var(--amberbg);color:var(--amber);border:1px solid #ecd6ab}
+
+.cols{display:grid;grid-template-columns:1fr 320px;gap:16px;margin-top:12px}
+@media(max-width:880px){.cols{grid-template-columns:1fr}}
+
+.band{margin-bottom:14px;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.band-h{padding:9px 14px;border-bottom:1px solid var(--rule);font-size:12px;font-weight:660;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.band-h .why{font-weight:500;font-size:11.5px;opacity:.85}
+.b1 .band-h{background:var(--tealbg);color:#0b6159}
+.b2 .band-h{background:var(--bluebg);color:var(--blue)}
+.b3 .band-h{background:#f3f6f8;color:var(--ink2)}
+.b4 .band-h{background:var(--amberbg);color:var(--amber)}
+.item{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:baseline;cursor:pointer}
+.item:last-child{border-bottom:0}
+.item:hover{background:#f8fafb}
+.item.sel{background:var(--bluebg)}
+.item .rk{font-family:var(--mono);font-size:11px;color:var(--ink3);flex:0 0 18px}
+.item .ti{flex:1;font-size:14.5px;font-weight:565}
+.item .bk{font-family:var(--mono);font-size:11.5px;color:var(--ink3);white-space:nowrap}
+.chip{font-size:10.5px;padding:1px 7px;border-radius:4px;font-weight:590;margin-left:6px;white-space:nowrap}
+.chip.p{background:var(--violetbg);color:var(--violet)}
+.chip.k{background:var(--bluebg);color:var(--blue)}
+.chip.s{background:var(--amberbg);color:var(--amber)}
+.chip.d{background:#eef1f4;color:var(--ink3)}
+.chip.f{background:#eef2f7;color:var(--blue)}
+.empty{padding:24px 16px;text-align:center;color:var(--ink3);font-size:14px}
+.facets{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.facets .flbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink3);font-weight:660;margin-right:2px}
+.fc{font-size:13px;padding:5px 11px;border-radius:18px;border:1px solid #cfd8de;
+  background:#fff;cursor:pointer;user-select:none;display:flex;gap:6px;align-items:baseline;
+  transition:all .12s;white-space:nowrap}
+.fc:hover{border-color:#9fb0bd}
+.fc.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.fc .fn{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.fc.on .fn{color:#cdeae6}
+.fc.clr{border-style:dashed;color:var(--red);border-color:#e6bdb7}
+.fc.off{cursor:default;color:var(--ink3);border-style:dashed}
+.fnote{font-size:12.5px;color:var(--ink3);margin:-4px 0 12px;padding-left:2px}
+.didyoumean{margin:10px 0 2px;font-size:14px;color:var(--ink2);padding:9px 12px;
+  background:var(--tealbg);border-left:3px solid var(--teal);border-radius:0 8px 8px 0}
+.didyoumean b{color:#0b6159;font-weight:670}
+.sp-from{display:block;font-size:12px;color:var(--ink3);margin-top:2px}
+.sp-from i{font-family:var(--mono);font-style:normal}
+.tstrip{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:2px}
+.tcard{flex:0 0 auto;padding:7px 12px 7px 8px;border-radius:11px;border:1.5px solid #e0e6ea;
+  background:#fff;cursor:pointer;user-select:none;text-align:center;transition:all .12s}
+.tcard:hover{border-color:#b9c6cf}
+.tcard.on{border-color:var(--teal);background:var(--tealbg);box-shadow:0 0 0 2px rgba(15,138,128,.12)}
+.tcard .tt{font-size:13px;font-weight:600;white-space:nowrap}
+.tcard.on .tt{color:#0b6159}
+.tcard .tn{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:2px}
+.tcard.on .tn{color:var(--teal)}
+.tcard.off{cursor:default;border-style:dashed;color:var(--ink3)}
+.tcard{display:flex;align-items:center;gap:8px;text-align:left}
+.tdot{flex:0 0 30px;height:30px;border-radius:8px;background:#eef1f4;color:var(--ink2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.tcard.on .tdot{background:var(--teal);color:#fff}
+.tdot.all{font-size:15px}
+.fclr{color:var(--red);cursor:pointer;text-decoration:underline}
+
+.box{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:12px}
+.box-h{background:#f3f6f8;padding:8px 13px;border-bottom:1px solid var(--rule);font-size:11px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);font-weight:660}
+.box-b{padding:11px 13px;font-size:13px;color:var(--ink2)}
+.pair{padding:7px 10px;border-radius:7px;margin-bottom:5px;background:#f6f8f9;font-size:13px;display:flex;gap:8px;align-items:baseline}
+.pair .pp{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.sheet .it{padding:7px 10px;border-radius:7px;margin-bottom:4px;background:#f6f8f9;font-size:13px;display:flex;gap:8px;align-items:baseline}
+.sheet .it.up{background:var(--tealbg);color:#0b6159;font-weight:590}
+.sheet .it .i{font-family:var(--mono);font-size:10px;color:var(--ink3);flex:0 0 14px}
+.xbucket{border-left:3px solid var(--amber);background:var(--amberbg);padding:11px 14px;font-size:13px;color:#6d4a06;border-radius:0 8px 8px 0;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{text-align:left;background:#f3f6f8;padding:7px 10px;font-size:11.5px;font-weight:650;border-bottom:1px solid var(--rule)}
+td{padding:7px 10px;border-bottom:1px solid var(--line);color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+.mono{font-family:var(--mono);font-size:12px}
+.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3);max-width:76ch}
+
+/* ---------- v11: suggestions, parent cards, view-more sheet ---------- */
+.sugwrap{position:relative}
+.sug{display:none;position:absolute;left:0;right:0;top:100%;z-index:40;margin-top:4px;
+     background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+     box-shadow:0 10px 30px rgba(16,24,40,.13)}
+.sug.on{display:block}
+.sg{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line2)}
+.sg:last-child{border-bottom:0}
+.sg:hover,.sg.on{background:var(--wash)}
+.sg-i{width:26px;height:26px;border-radius:6px;background:var(--wash);flex:none;
+      border:1px solid var(--line2)}
+.sg-t{flex:1;font-size:14px;color:var(--ink3)}
+.sg-t b{color:var(--ink);font-weight:600}
+.sg-n{font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.sg-w{display:inline-block;margin-left:7px;font-size:10.5px;color:#7c3aed;
+      background:#f3ecff;border:1px solid #e4d8fb;border-radius:5px;padding:1px 6px}
+
+.pband{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.pcard{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line2);cursor:pointer}
+.pcard:hover{background:var(--wash)}
+.pc-l{flex:1;min-width:0}
+.pc-t{font-size:14px;font-weight:650;color:var(--ink)}
+.pc-s{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.pc-x{font-size:11.5px;color:var(--ink3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-y{display:inline-block;margin-top:4px;font-size:10.5px;color:#7c3aed;
+      background:#f3ecff;border:1px solid #e4d8fb;border-radius:5px;padding:1px 6px}
+.pc-b{flex:none;border:1px solid var(--acc);color:var(--acc);background:#fff;
+      border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.pcard:hover .pc-b{background:var(--acc);color:#fff}
+
+.sheet{display:none}
+.sheet.on{display:block}
+.sh-back{position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:60}
+.sh-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:61;
+         width:min(680px,92vw);max-height:84vh;display:flex;flex-direction:column;
+         background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(16,24,40,.3)}
+.sh-h{display:flex;align-items:flex-start;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.sh-t{font-size:17px;font-weight:700;color:var(--ink)}
+.sh-s{font-size:12px;color:var(--ink3);margin-top:3px}
+.sh-x{margin-left:auto;border:0;background:var(--wash);width:30px;height:30px;border-radius:50%;
+      font-size:19px;line-height:1;cursor:pointer;color:var(--ink3);font-family:inherit}
+.sh-note{padding:9px 18px;font-size:12px;color:var(--ink3);background:var(--wash);
+         border-bottom:1px solid var(--line2)}
+.sh-b{overflow:auto;padding:4px 0}
+.sh-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line2)}
+.sh-row:last-child{border-bottom:0}
+.sh-row.hit{background:#fffdf2}
+.sh-rk{width:20px;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.sh-n{flex:1;font-size:13.5px;color:var(--ink)}
+.sh-p{font-size:13px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.sh-bk{width:92px;text-align:right;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.sh-add{border:1px solid var(--acc);color:var(--acc);background:#fff;border-radius:7px;
+        padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.chip.m{background:#fef3c7;color:#92400e;border-color:#fde68a}
+
+.synthetic-note{margin:0 0 14px;padding:9px 14px;border:1px solid #f0d9a8;
+  background:#fdf6e7;border-radius:8px;font-size:12.5px;color:#7a5a12}
+.synthetic-note b{color:#5c430c}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="synthetic-note"><b>Synthetic data.</b> Every service, price, treatment line, order count and shopper history on this page is generated. No real customer or catalogue data is present.</div>
+
+<div class="eyebrow">Service Search · v11 · Ranges and type-ahead</div>
+<h1>Sort three ways, let her narrow it, and forgive the spelling</h1>
+<p class="lede">Three sorts decide the order and nothing is weighted: relevance band, then what she has booked, then what sells most. Two filter layers then let her cut the list down — treatment type, then body area — and each layer hides itself when the query already answered its question. Every position on the page has a one-sentence reason. v10.1 adds one stage in front of all of it: a word that is not in the catalogue is corrected before anything is searched, so <code>fadial</code> finds Aurora Facial Deluxe and <code>waz</code> commits to the Waxing hall.</p>
+
+<div class="rule">
+  <div class="rstep"><div class="n">SORT 1</div><div class="t">Relevance band</div><div class="d">How exactly does this answer what was typed? Outranks everything below.</div></div>
+  <div class="rstep"><div class="n">SORT 2</div><div class="t">Booked before</div><div class="d">Only breaks ties inside a band. Never lifts something into a higher band.</div></div>
+  <div class="rstep"><div class="n">SORT 3</div><div class="t">Best selling</div><div class="d">Booking volume. This is also where business interest sits — no separate margin lever.</div></div>
+  <div class="rstep"><div class="n">FILTER 1</div><div class="t">Treatment type</div><div class="d">Which kind — Verda, Aurora, Lumen, Nova. One choice. Ordered by what people book.</div></div>
+  <div class="rstep"><div class="n">FILTER 2</div><div class="t">Body area</div><div class="d">Where on the body. Several at once. Ordered by count, which the chip shows.</div></div>
+</div>
+
+<div class="note"><b>Spelling is fixed before the search runs, not after.</b> A vector retriever cannot rescue a misspelling — <code>fadial</code> is a word no embedding model has ever seen, so it has no meaningful vector and sits nowhere near Facial. Character-level mistakes need a character-level fix, so an unknown word is corrected against the catalogue's own vocabulary first, and the lift, the lexical half, the vector half, the bands and both filter rows then all run on real words. <code>kotean fadial</code> returns exactly what <code>aurora facial</code> returns, in the same order.</div>
+
+<div class="note a"><b>Three rules stop it doing damage.</b> Only <b>unknown</b> words are corrected, so <code>arms</code> is never “fixed”. A word that is a <b>prefix</b> of a catalogue word is left alone, because <code>wa</code> and <code>pedicur</code> are someone still typing rather than someone who got it wrong — live search keeps working keystroke by keystroke. And ties break on <b>how common</b> the word is, so <code>waz</code> becomes <code>wax</code> rather than any of the other words one edit away. Distance is measured with transposition allowed, because swapping two letters — <code>faical</code> — is the most common typo there is and plain edit distance charges it twice.</div>
+
+<div class="note"><b>The whole idea:</b> type <code>waxing</code> and no word in it is specific enough to separate anything — so every waxing service lands in one band and best sellers lead. Type <code>bikini wax</code> and “bikini” separates a few services into a higher band, so they lead and popularity barely matters. Same rule, both behaviours.</div>
+
+<div class="note"><b>Two filter layers, and each one hides when it has nothing to ask.</b> A vague query leaves two questions open — <i>which kind</i> and <i>where on the body</i> — so it gets two rows. A precise query has already answered one of them, and a row for a question you just answered is dead furniture:</div>
+
+<table>
+  <thead><tr><th style="width:30%">Query</th><th>Type row</th><th>Body-area row</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">waxing</td><td>Aurora · Verda · Amber · Verda Roll On</td><td>Arms 28 · Legs 25 · Underarms 19 · Back 12</td></tr>
+    <tr><td class="mono">full legs waxing</td><td>Aurora · Verda · Amber · Verda Roll On</td><td>— you already said Legs</td></tr>
+    <tr><td class="mono">verda waxing</td><td>— you already said Verda</td><td>Arms 28 · Legs 25 · Underarms 19 · Back 12</td></tr>
+    <tr><td class="mono">full legs verda waxing</td><td>— already answered</td><td>— already answered</td></tr>
+    <tr><td class="mono">threading</td><td>— not sold by type</td><td>Face 15 · Lips 4 · Chin 4 · Forehead 3</td></tr>
+    <tr><td class="mono">hair reduction</td><td>— not sold by type</td><td>Face 9 · Bikini 6 · Legs 6 · Arms 6</td></tr>
+  </tbody>
+</table>
+
+<div class="note a"><b>Two vocabularies, both catalogue-wide.</b> <b>Type</b> is read from the name against an ordered list, first match wins, so each service gets exactly one — and order encodes priority: <code>Verda Roll On</code> beats its own fragment <code>Verda</code>, <code>Deep Tissue</code> beats <code>Pain Relief</code>, and a brand beats the mood word beside it, so <code>Aurora Glow Bleach</code> is Aurora and not Glow. <b>Area</b> is read from the name, then from what kind of service it is, then from the hall — so <code>Aurora Clean Up</code> and <code>Lumen Pain Relief Massage</code>, which never name a body part, still get one. Area covers 97% of order volume.</div>
+
+<div class="note r"><b>Where the type row refuses to appear.</b> Threading and laser name body parts and session counts but no treatment type — three stray chips over forty results is worse than none, so a type row also requires types to describe at least 40% of what is on screen. Laser is the clean negative: its names carry <code>Bikini</code>, <code>Underarms</code>, <code>3 Sessions</code>, and nothing a shopper would call a kind. Small-area waxing — <code>Upper Lips</code>, <code>Chin</code>, <code>Underarms</code> — genuinely ships one way, so those rows carry no type and are reachable under <b>All</b>.</div>
+
+<div class="note"><b>Filters narrow, they never reorder.</b> Both layers are applied <i>after</i> the sort, so every guarantee above survives untouched — a filtered list is always a subsequence of the unfiltered one. Counts cross-filter: pick Aurora and the area chips become Aurora-only counts, which is the number worth showing, but no chip in its own row shrinks because a neighbour was clicked.</div>
+
+<div class="panel">
+  <div class="row1">
+    <div class="fld sugwrap"><label for="q">Search</label><input id="q" value="waxing" autocomplete="off" spellcheck="false"><div id="sug" class="sug"></div></div>
+    <div class="fld"><label for="bk">Bucket</label><select id="bk"></select></div>
+    <div class="fld"><label for="seg">Shopper</label><select id="seg">
+      <option value="new" selected>No history at all</option>
+      <option value="alia">Alia — new (1 booking)</option>
+      <option value="kiara">Kiara — occasional (5)</option>
+      <option value="amara">Amara — regular (43)</option>
+    </select></div>
+  </div>
+  <div class="toggles" id="tg"></div>
+  <div id="spell"></div>
+  <div class="words" id="lift"></div>
+  <div class="words" id="words"></div>
+</div>
+
+<div class="cols">
+  <div><div id="facets"></div><div id="results"></div><div id="rel"></div><div id="xb"></div></div>
+  <div id="side"></div>
+</div>
+
+<h3>Why this is simpler than the last version</h3>
+<table>
+  <thead><tr><th style="width:34%">Old (weighted score)</th><th>New (band sort)</th></tr></thead>
+  <tbody>
+    <tr><td>Four levers multiplied by four weights and summed</td><td>Three sorts applied in order</td></tr>
+    <tr><td>“Why is this first?” needs arithmetic</td><td>“Why is this first?” is a sentence</td></tr>
+    <tr><td>Margin could push a weaker match up the page</td><td>Business lives inside popularity, which only ever reorders equally-relevant results</td></tr>
+    <tr><td>Curated list competed with relevance and distorted it</td><td>Curated moved out of ranking entirely, into a paired-together widget</td></tr>
+    <tr><td>Needed a relevance floor to stop personalisation overriding intent</td><td>Structurally impossible — personalisation only sorts inside a band</td></tr>
+    <tr><td>Tuning meant balancing four weights against each other</td><td>One threshold decides what counts as a specific word</td></tr>
+  </tbody>
+</table>
+
+<div class="note"><b>Booking volume is real.</b> Counts come from the 629,017-line booking export: 548,893 completed lines across 1,403 catalogue services, after excluding 80,123 cancelled and refunded lines. Waxing alone accounts for 335,656 of them.</div>
+
+<div class="note a"><b>Two exclusions applied.</b> <b>Female Disposable Combo</b> ships with every order, so its 129,603 bookings would otherwise make it the top result for almost any beauty query — removed from popularity entirely, along with 94 other consumables and customer-invisible services. Separately, <b>threading</b> is filed under a sub-category named “Threading &amp; Face Wax”, so a search for <code>waxing</code> matches it on filing alone. Those land in band 4 rather than leading — Eyebrows Threading is the highest-volume service in the catalogue and would otherwise top every waxing search.</div>
+
+<div class="foot">
+Running on 2,174 live services, 456 search phrases, 214 parent–child links, 24 buckets and 548,893 completed bookings. Relevance bands, popularity ordering and family ordering are real. Shopper booking history is synthetic — real per-user history is the remaining gap. Semantic retrieval is a TF-IDF stand-in, not a pretrained model.
+</div>
+</div>
+
+<script id="DATA" type="application/json">__DATA__</script>
+<script id="REAL" type="application/json">__REAL__</script>
+<div id="sheet" class="sheet"></div>
+<script>
+var D=JSON.parse(document.getElementById("DATA").textContent);
+var SVC=D.services,SUG=D.suggestions,BK=D.buckets,VEC=D.vec,TERMS=D.terms,DIMS=D.dims;
+var SUBCATS=D.subcats||[],HALL={};
+SUBCATS.forEach(function(h){HALL[h.id]=h;});
+
+var NOISE={and:1,the:1,for:1,with:1,at:1,"in":1,of:1,a:1,to:1};
+function norm(s){return (s||"").toLowerCase().replace(/[+&,]/g," and ").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();}
+function toks(s){return norm(s).split(" ").filter(function(w){return w&&!NOISE[w];});}
+function stem(a,b){if(a===b)return true;var s=a.length<=b.length?a:b,l=a.length<=b.length?b:a;
+  return s.length>=3&&l.indexOf(s)===0;}
+/* WHAT a service is (its own name and tags) vs WHERE it is filed (sub-category).
+   These are not equally good evidence. Threading services sit in a sub-category
+   called "Threading & Face Wax", so searching "waxing" matches them on filing
+   alone — and because Eyebrows Threading is the highest-volume service in the
+   catalogue, it would otherwise lead a waxing search. A filing-only match is
+   real but weaker, so it lands one band lower.                                */
+/* One row per service, always. Wrapper words like "Ritual" or "Package" make
+   two listings for what a shopper reads as the same thing — "Full Arms + Full
+   Legs + Underarms Aurora Waxing" and the same name plus "Ritual" must collapse
+   to one line. Body-part words are never stripped, so "Half Legs" stays
+   distinct from "Full Legs".                                                 */
+var WRAP={ritual:1,package:1,packages:1,pack:1,combo:1,session:1,sessions:1,
+          service:1,services:1,new:1,offer:1};
+function dedupKey(t){
+  return toks(t).filter(function(w){return !WRAP[w];}).join(" ");
+}
+function strongText(k){var s=SVC[k];return (s.t||"")+" "+(s.tg||"");}
+function weakText(k){var s=SVC[k];return s.sc||"";}
+function text(k){return strongText(k)+" "+weakText(k);}
+
+/* ---- real completed-booking volume, from the 629k-row export ---- */
+/* ---- bookings ------------------------------------------------------------
+   Everything that ranks — the result list, the parent cards, the dropdown,
+   the view-more sheet — asks this one function how much a service sells. It
+   now answers with real completed orders (status 5 and 6) for May to
+   September 2026, 2.14 million of them, rather than the older extract the
+   catalogue shipped with. 163 of the 173 services in that export matched a
+   catalogue row, covering 98.9% of the orders; the ten that did not keep
+   their old figure rather than dropping to zero, because a service with no
+   number would vanish from every list instead of merely ranking low.      */
+var REAL=null;
+function realOrders(){
+  if(REAL) return REAL;
+  try{
+    var el=document.getElementById("REAL");
+    var j=el?JSON.parse(el.textContent):{};
+    REAL=j.orders||{};
+  }catch(e){ REAL={}; }
+  return REAL;
+}
+function bookings(k){
+  var r=realOrders();
+  if(r[k]!==undefined) return r[k];
+  return (SVC[k]&&SVC[k].bk)||0;
+}
+
+/* ---- shopper history ----
+   Amara is a fabverdated but realistic regular: 31 booking lines across roughly
+   10 visits in 4 months, all real service IDs. Her core is the Aurora waxing
+   combo; threading rides along with most visits, which is exactly the pattern
+   in the real data (threading is flagged as an add-on and is the highest-volume
+   service in the catalogue).                                                  */
+var PERSONAS={
+  "amara":{label:"Amara \u2014 regular \u00b7 49 lines / 4 months", note:"Books monthly. Strongly Aurora.",
+    counts:{"1000":10, "1345":6, "1225":8, "1060":4, "2821":7, "2057":3, "1413":4, "2486":2, "1977":3, "1978":2}},
+  "kiara":{label:"Kiara \u2014 occasional \u00b7 4 lines / 4 months", note:"A couple of waxing visits, tried a few things.",
+    counts:{"2818":2, "1700":1, "2035":1}},
+  "alia":{label:"Alia \u2014 new \u00b7 1 line / 4 months", note:"One booking. Effectively unknown.",
+    counts:{"1128":1}},
+  "new":{label:"No history at all", note:"First-time visitor.",
+    counts:{}}
+};
+/* A brand needs to be bought MORE THAN ONCE before it counts as a preference.
+   One purchase is a trial, not a habit — without this, Alia's single Aurora
+   booking would reorder every Aurora service in the catalogue for her.        */
+var BRAND_MIN=2;
+function history(seg){
+  var p=PERSONAS[seg]||PERSONAS["new"];
+  var counts=p.counts, tally={}, brands={};
+  Object.keys(counts).forEach(function(k){
+    var s=SVC[k]; if(!s) return;
+    ["aurora","verda","silk","lumen","terra","nova","petal","amber"].forEach(function(b){
+      if((s.t||"").toLowerCase().indexOf(b)>=0) tally[b]=(tally[b]||0)+counts[k];
+    });
+  });
+  Object.keys(tally).forEach(function(b){ if(tally[b]>=BRAND_MIN) brands[b]=tally[b]; });
+  return {counts:counts,brands:brands,tally:tally,label:p.label,note:p.note};
+}
+
+/* ---- retrieval ---- */
+/* The final word of a query may still be half-typed, so it may match a service
+   word as a prefix from two characters. Typing "wa" reaches waxing services
+   while the shopper is still going. Earlier words are treated as finished.
+   Two characters is safe because the hall gate has already narrowed the pool. */
+var LIVE_MIN=2;
+function svcTok(t,w,live){
+  if(stem(t,w)) return true;
+  return !!live && t.length>=LIVE_MIN && w.indexOf(t)===0;
+}
+function lexHits(q,pool){
+  var qt=toks(q);if(!qt.length)return{};
+  var last=qt.length-1;
+  var out={};
+  pool.forEach(function(k){
+    var st=toks(strongText(k)),wt=toks(weakText(k)),s=[],w=[];
+    qt.forEach(function(t,i){
+      var live=(i===last);
+      if(st.some(function(x){return svcTok(t,x,live);}))s.push(t);
+      else if(wt.some(function(x){return svcTok(t,x,live);}))w.push(t);
+    });
+    if(s.length||w.length)out[k]={s:s,w:w,all:s.concat(w)};
+  });
+  return out;
+}
+
+/* Does the service contain the typed words as a run, in the order typed?
+   "Full legs" is a phrase, not two independent words. Scanning every position
+   matters: "Full Arms + Full Legs + Underarms" has "full" at 0 and 2, and only
+   the second one is adjacent to "legs".                                      */
+function hasPhrase(tokens,seq,liveLast){
+  if(seq.length<2) return true;
+  for(var i=0;i+seq.length<=tokens.length;i++){
+    var ok=true;
+    for(var j=0;j<seq.length;j++){
+      var live=liveLast&&(j===seq.length-1);
+      if(!svcTok(seq[j],tokens[i+j],live)){ok=false;break;}
+    }
+    if(ok) return true;
+  }
+  return false;
+}
+function qvec(q){
+  var t=toks(q),v=new Array(DIMS).fill(0),n=0;
+  t.forEach(function(w){var tv=TERMS[w];if(tv){for(var i=0;i<DIMS;i++)v[i]+=tv[i];n++;}});
+  if(!n)return null;var m=0;for(var i=0;i<DIMS;i++)m+=v[i]*v[i];m=Math.sqrt(m);
+  if(!m)return null;for(i=0;i<DIMS;i++)v[i]/=m;return v;
+}
+function semHits(q,pool){
+  var v=qvec(q);if(!v)return{};
+  var out={},arr=[];
+  pool.forEach(function(k){
+    var w=VEC[k];if(!w)return;var d=0,mm=0;
+    for(var i=0;i<DIMS;i++){d+=(w[i]/127)*v[i];mm+=(w[i]/127)*(w[i]/127);}
+    arr.push([k,d/(Math.sqrt(mm)||1)]);
+  });
+  arr.sort(function(a,b){return b[1]-a[1];});
+  arr.slice(0,40).forEach(function(x){if(x[1]>0.45)out[x[0]]=x[1];});
+  return out;
+}
+
+/* ---- THE RULE: classify each query word, then band every candidate ---- */
+/* A word is a FAMILY word if it appears in more than half of the services the
+   query pulled up — it names the shelf, so it cannot pick a product off it.
+   Measured against the MATCHED set, not the whole bucket: "legs" is in only 37
+   of 499 Beauty services, but that is not the question. The question is how
+   many of the services this query surfaced contain it.                       */
+/* ================= THE LIFT =================
+   The platform is a building. The category is the floor (Beauty is floor 5).
+   The sub-category is the hall on that floor (Waxing is hall 1). The service
+   is the room. A query has to name a hall before it can name a room.
+
+   Without this, "aurora waxing" behaves badly: "waxing" is common enough to be
+   a family word, so it gets ignored the moment a rarer word like "aurora" is
+   present — and Aurora Mani & Pedi, Aurora Facial Deluxe and Aurora Body
+   Polishing all land in the top band. Resolving the hall first makes the
+   family word a gate rather than a fallback.                                 */
+/* Which hall is this query pointing at?
+   Two measures, used in order:
+     matched  how many of the typed words the hall's name explains
+     cover    what fraction of the hall's own name those words account for
+
+   "aurora waxing" matches one word in Waxing, in Threading & Face Wax, and in
+   Aurora Glow — a three-way tie on `matched`. Cover breaks it: Waxing is fully
+   accounted for (1.00) while the others are partial (0.33 and 0.50), so Waxing
+   wins. And "threading" alone still finds Threading & Face Wax, because one
+   matched word beats none even though it covers only a third of the name.
+
+   The SEO keyword is deliberately not used. Two different halls can carry the
+   same keyword, and some carry a keyword glued to another word with no
+   separator, so either one drags the wrong hall into every search that
+   touches it. The hall NAME is the only thing read.                                                     */
+/* The final word of a query may still be half-typed, so it is allowed to match
+   a hall name as a prefix: "leg w" reaches Waxing while the shopper is still
+   typing. Only the last word gets this — an earlier word is finished.        */
+function matchTok(t,w,allowPrefix){
+  if(stem(t,w)) return true;
+  return !!allowPrefix && t.length>0 && w.indexOf(t)===0;
+}
+function hallScore(q,h){
+  var qt=toks(q), ht=toks(h.name);
+  if(!ht.length||!qt.length) return {matched:0,cover:0};
+  var last=qt.length-1;
+  var hit=0;
+  ht.forEach(function(w){
+    if(qt.some(function(t,i){return matchTok(t,w,i===last);})) hit++;
+  });
+  var matched=0;
+  qt.forEach(function(t,i){
+    if(ht.some(function(w){return matchTok(t,w,i===last);})) matched++;
+  });
+  return {matched:matched,cover:hit/ht.length};
+}
+/* The bundle is already canonical: one id per service per floor, chosen as the
+   most-booked copy, with every other id retired and remapped. Test and staging
+   data — a testing hub, the a testing hub and "S" staging halls, the Quick wax family — was
+   removed at build time. 766 ids retired, 110 test services dropped.
+   Nothing here needs to filter at runtime.                                   */
+
+/* Halls that answer the same underlying need. "Hair reduction" should lead with
+   laser, but waxing is a legitimate second answer to the same question, so it is
+   offered in a separate labelled block rather than mixed into the results.
+   This is deliberately a curated list, not something inferred — the business
+   knows which services substitute for each other and a model only guesses.
+
+   DIRECTION MATTERS, so this map is not symmetric. It reads "someone who typed
+   a query landing in hall X may also want hall Y", and that is a claim about
+   intent, not about similarity:
+
+     - "hair reduction" names an OUTCOME. Laser and waxing both produce it, so
+       offering waxing underneath laser is genuinely useful.
+     - "waxing" names the METHOD. She has already chosen it, and there are
+       dozens of waxing services in front of her. Offering laser is answering a
+       question she did not ask — and laser is a different price bracket and a
+       different number of appointments, so it is worse than merely noise.
+
+   Laser -> Waxing therefore exists and Waxing -> Laser deliberately does not.
+   Facial/Clean-Up and Massages/Spa Services stay two-way: those really are
+   substitutes at comparable price and commitment, in both directions.       */
+var RELATED={
+  "Laser Hair Reduction":["Waxing"],
+  "Laser Skin":["Facial","Clean Up"],
+  "Body Polishing":["Body Scrub"],
+  "Inch Loss":["Body Wrap"],
+  "Hair Treatment":["Hair Spa"],
+  "Hair Spa":["Hair Treatment"],
+  "Facial":["Clean Up"],
+  "Clean Up":["Facial"]
+};
+
+var ALL="__ALL__";
+/* bucket may be ALL — a global search. Then every hall on every floor is a
+   candidate, and if a hall name wins, that hall is taken on ALL the floors that
+   have one. So "legs wax" commits to Waxing in Beauty, Beauty at Home and
+   Instant Salon at once, while "legs" alone commits to nothing.             */
+function resolveHall(q,bucket){
+  if(!toks(q).length) return {halls:[],score:0,matched:0};
+  var here=(bucket===ALL)?SUBCATS:SUBCATS.filter(function(h){return h.cat===bucket;});
+  var scored=[];
+  here.forEach(function(h){
+    var s=hallScore(q,h);
+    if(s.matched>0) scored.push({h:h,m:s.matched,c:s.cover});
+  });
+  if(!scored.length) return {halls:[],score:0,matched:0};
+  scored.sort(function(a,b){return b.m-a.m || b.c-a.c;});
+  /* Commit to a hall only when the query substantially NAMES it. One word that
+     merely appears inside a longer hall name is not enough: "face" turns up in
+     "Threading & Face Wax" and "Face & Body Toning", but a shopper typing it
+     wants everything face-related, not those two halls. "waxing" names Waxing
+     outright (1.00) and "hair reduction" names Laser Hair Reduction (0.67), so
+     both commit. Anything weaker stays global and gets grouped by hall.      */
+  if(scored[0].c < 0.6) return {halls:[],score:scored[0].c,matched:scored[0].m};
+  var bm=scored[0].m, bc=scored[0].c;
+  /* keep only halls tied on both measures */
+  var win=scored.filter(function(x){return x.m===bm && Math.abs(x.c-bc)<0.001;});
+  return {halls:win.map(function(x){return x.h;}),score:bc,matched:bm};
+}
+
+var FAMILY_RATIO=0.5;
+function classify(q,pool){
+  var qt=toks(q),spec=[],fam=[],unknown=[],df={},matched={};
+  var last=qt.length-1;
+  var docs={};
+  pool.forEach(function(k){docs[k]=toks(strongText(k));});
+  qt.forEach(function(t,i){
+    var live=(i===last);          /* the word still being typed */
+    var d=0;
+    pool.forEach(function(k){
+      if(docs[k].some(function(w){return svcTok(t,w,live);})){d++;matched[k]=1;}
+    });
+    df[t]=d;
+  });
+  /* note: df is measured on strong text only — see strongText() */
+  var M=Object.keys(matched).length||1;
+  qt.forEach(function(t){
+    if(df[t]===0)unknown.push(t);
+    else if(df[t]/M>FAMILY_RATIO)fam.push(t);
+    else spec.push(t);
+  });
+  return {spec:spec,fam:fam,unknown:unknown,df:df,n:pool.length,matched:M,
+          lastIsSpec: qt.length>0 && spec.indexOf(qt[last])>=0};
+}
+function band(k,cls,lex,sem){
+  var h=lex[k];
+  if(h){
+    var S=h.s;                                   /* matched on name or tags */
+    var ms=cls.spec.filter(function(t){return S.indexOf(t)>=0;}).length;
+    var mf=cls.fam.filter(function(t){return S.indexOf(t)>=0;}).length;
+    if(cls.spec.length){
+      if(ms===cls.spec.length){
+        /* All the distinguishing words are present — but are they the phrase
+           the shopper typed? "Full Arms + Half Legs + Underarms" contains both
+           "full" and "legs" without ever saying "full legs", so it answers a
+           different question and must not outrank the services that do.     */
+        var live=cls.lastIsSpec;
+        return hasPhrase(toks(strongText(k)),cls.spec,live)?1:2;
+      }
+      if(ms>0)return 3;
+      if(mf>0)return 4;
+    } else if(mf>0) return 4;
+    /* matched only on sub-category — filed near it, but isn't it */
+    if(h.w.length)return 5;
+  }
+  return sem[k]!==undefined?5:0;
+}
+var BANDLBL={1:"Exact phrase",2:"All words, different phrase",3:"Some words",
+             4:"Same family",5:"Related only"};
+
+/* ================= SPELLING CORRECTION ==============================
+   A vector retriever cannot rescue a misspelling. "fadial" is not a word the
+   embedding model has ever seen, so it has no meaningful vector and lands
+   nowhere near Facial; "waz" is not close to "wax" in meaning-space either,
+   because meaning-space is built over words that exist. Character-level
+   mistakes need a character-level fix, and it has to happen BEFORE retrieval —
+   correct the query, then let the existing lexical and vector halves run on
+   the corrected words.
+
+   Three rules keep it from doing damage:
+
+     1. Only unknown words are corrected. If a typed word appears anywhere in
+        the catalogue it is left exactly as typed, so "arms" is never "fixed".
+     2. A word still being typed is not a mistake. If the token is a prefix of
+        any catalogue word — "wa", "fac" — it is left alone, so live search
+        keeps working as the shopper types.
+     3. Ties break on how common the word is. "waz" is one edit from several
+        catalogue words; it becomes "wax" because "wax" describes far more
+        services than any other candidate at the same distance.              */
+
+var VOCAB=null,VOCAB_DF=null,VOCAB_BY_LEN=null;
+function buildVocab(){
+  if(VOCAB) return;
+  VOCAB_DF={};
+  Object.keys(SVC).forEach(function(k){
+    var s=SVC[k]; if(!s.vis) return;
+    var seen={};
+    toks((s.t||"")+" "+(s.tg||"")).forEach(function(w){
+      if(w.length<3||seen[w])return; seen[w]=1;
+      VOCAB_DF[w]=(VOCAB_DF[w]||0)+1;
+    });
+  });
+  /* hall names count too — a shopper may misspell the hall, not the service */
+  SUBCATS.forEach(function(h){
+    toks(h.name||"").forEach(function(w){
+      if(w.length<3)return; VOCAB_DF[w]=(VOCAB_DF[w]||0)+3;
+    });
+  });
+  VOCAB=Object.keys(VOCAB_DF);
+  VOCAB_BY_LEN={};
+  VOCAB.forEach(function(w){ (VOCAB_BY_LEN[w.length]=VOCAB_BY_LEN[w.length]||[]).push(w); });
+}
+/* Damerau-Levenshtein: plain edit distance plus transposition, because
+   swapping two letters ("faical") is the single most common typo and plain
+   Levenshtein charges it two edits. Bails out as soon as the row minimum
+   exceeds the cap, so most comparisons stop after a column or two. */
+function editDist(a,b,cap){
+  var la=a.length,lb=b.length;
+  if(Math.abs(la-lb)>cap) return cap+1;
+  var prev2=[],prev=[],cur=[],i,j;
+  for(j=0;j<=lb;j++) prev[j]=j;
+  for(i=1;i<=la;i++){
+    cur[0]=i; var best=cur[0];
+    for(j=1;j<=lb;j++){
+      var cost=a.charAt(i-1)===b.charAt(j-1)?0:1;
+      var v=Math.min(cur[j-1]+1, prev[j]+1, prev[j-1]+cost);
+      if(i>1&&j>1&&a.charAt(i-1)===b.charAt(j-2)&&a.charAt(i-2)===b.charAt(j-1))
+        v=Math.min(v,prev2[j-2]+1);
+      cur[j]=v; if(v<best)best=v;
+    }
+    if(best>cap) return cap+1;
+    prev2=prev.slice(); prev=cur.slice();
+  }
+  return prev[lb];
+}
+function isKnown(w){ buildVocab(); return VOCAB_DF[w]!==undefined; }
+function isPrefix(w){
+  buildVocab();
+  for(var i=0;i<VOCAB.length;i++) if(VOCAB[i].indexOf(w)===0) return true;
+  return false;
+}
+/* How wrong a word is allowed to be, scaled to its length. One edit on a
+   three-letter word is already a third of it; two edits on a short word would
+   turn "arm" into almost anything. */
+function maxEdits(w){ return w.length<=3?1:w.length<=6?1:2; }
+
+function correctToken(w){
+  buildVocab();
+  if(w.length<3) return null;
+  if(isKnown(w)) return null;
+  if(isPrefix(w)) return null;                 /* still typing, not a typo */
+  var cap=maxEdits(w),best=null,bestD=cap+1,bestDf=-1;
+  for(var L=w.length-cap;L<=w.length+cap;L++){
+    var bucket=VOCAB_BY_LEN[L]; if(!bucket) continue;
+    for(var i=0;i<bucket.length;i++){
+      var c=bucket[i],d=editDist(w,c,cap);
+      if(d>cap) continue;
+      var df=VOCAB_DF[c];
+      if(d<bestD || (d===bestD && df>bestDf)){ best=c; bestD=d; bestDf=df; }
+    }
+  }
+  return best;
+}
+/* Correct a whole query. Returns the corrected string plus what was changed,
+   so the page can say "showing results for X" rather than silently rewriting
+   what she typed. */
+function correctQuery(q){
+  if(!ST.spell) return {q:q,fixes:[]};
+  var ts=toks(q),out=[],fixes=[];
+  ts.forEach(function(w){
+    var c=correctToken(w);
+    if(c){ out.push(c); fixes.push([w,c]); } else out.push(w);
+  });
+  return {q:fixes.length?out.join(" "):q, fixes:fixes};
+}
+
+/* ================= LAYER 1: TREATMENT TYPE =========================
+   The area chips answer "where on the body". They do not answer the other
+   question a vague query leaves open: "which kind". Search "waxing" and the
+   catalogue offers Aurora, Verda, Amber and Petal of nearly every area;
+   search "facial" and it offers Silk, Facial-Hydra, Lumen and Terra. That is
+   a second, independent dimension, so it gets its own row of chips above the
+   area row.
+
+   Types are read from the service name against an ORDERED list, first match
+   wins, which is what gives each service exactly one type. Order encodes
+   priority, and it has to:
+
+     "Verda Roll On Wax"        -> Verda Roll On, not Verda
+     "Deep Tissue Pain Relief"      -> Deep Tissue,       not Pain Relief
+     "Aurora Glow Bleach"     -> Aurora,            not Glow
+     "Nova Detan Clean-Up"           -> Nova,               not Detan
+
+   so multi-word phrases come before their own fragments, and brand names come
+   before the style and mood words that decorate them. A service matching
+   nothing has no type: it is reachable under "All" and nowhere else, which is
+   correct — there is no type to file it under.
+
+   Laser is the useful negative case. Its names carry sessions and body parts
+   but no treatment type at all, so a laser search shows no type row rather
+   than an invented one.                                                    */
+var TYPES=[
+  ["Aurora Ritual",["aurora ritual"]],
+  ["Aurora",["aurora"]],
+  ["Nova",["nova"]],
+  ["Silk",["silk"]],
+  ["Lumen",["lumen"]],
+  ["Terra",["terra"]],
+  ["Verda",["verda"]],
+  ["Amber",["amber"]],
+  ["Petal",["petal"]],
+  ["Signature",["signature"]],
+  ["Deluxe",["deluxe"]],
+  ["Express",["express"]],
+  ["Repair",["repair"]],
+  ["Glow",["glow"]]
+];
+var _typeCache={};
+function svcType(k){
+  if(_typeCache[k]!==undefined) return _typeCache[k];
+  var nm=" "+norm((SVC[k]||{}).t||"")+" ",found="";
+  for(var i=0;i<TYPES.length&&!found;i++)
+    for(var j=0;j<TYPES[i][1].length;j++)
+      if(nm.indexOf(" "+TYPES[i][1][j]+" ")>=0){found=TYPES[i][0];break;}
+  return (_typeCache[k]=found);
+}
+
+/* ================= BODY-AREA FACETS =================================
+   A shopper looking at a long list does not want it re-sorted, she wants it
+   narrowed. Almost every service on the platform treats a part of the body —
+   waxing treats arms, a facial treats the face, a pedicure treats feet, laser
+   treats a bikini line — so ONE shared vocabulary of body areas works across
+   every floor and every hall, which is why these chips are not a waxing
+   feature bolted on but a catalogue-wide one.
+
+   The area is read from three places, in order, and the first that answers wins:
+
+     1. the service NAME          "Full Legs Waxing"          -> Legs
+     2. a service-TYPE word       "Classic Pedicure"          -> Feet
+     3. the HALL it sits in       "Nutri Seed Clean-Up"       -> Face
+
+   Tier 3 exists because names like "Aurora Clean Up" and "Deep Tissue Pain
+   Relief Massage" never say where they are applied, yet everyone knows.
+   Anything still unresolved — "Top up - 30 mins", "Saree Draping", "Wax Off
+   With Your Product" — gets no chip, which is correct: it treats no area. */
+var AREA_WORDS={
+  face:"Face",faces:"Face",cheek:"Face",cheeks:"Face",beard:"Face",
+  eyebrow:"Eyebrows",eyebrows:"Eyebrows",brow:"Eyebrows",brows:"Eyebrows",
+  lip:"Lips",lips:"Lips", chin:"Chin", forehead:"Forehead",
+  locks:"Sidelocks",sidelocks:"Sidelocks",
+  neck:"Neck",nape:"Neck",
+  arm:"Arms",arms:"Arms",forearm:"Arms",forearms:"Arms",elbow:"Elbows",elbows:"Elbows",
+  underarm:"Underarms",underarms:"Underarms",armpit:"Underarms",armpits:"Underarms",
+  hand:"Hands",hands:"Hands",cuticle:"Hands",cuticles:"Hands",
+  back:"Back", front:"Front",
+  stomach:"Stomach",tummy:"Stomach",abdomen:"Stomach",belly:"Stomach",
+  leg:"Legs",legs:"Legs",thigh:"Legs",thighs:"Legs",calf:"Legs",calves:"Legs",
+  knee:"Knees",knees:"Knees",
+  feet:"Feet",foot:"Feet",toe:"Feet",toes:"Feet",heel:"Feet",heels:"Feet",
+  bikini:"Bikini",intimate:"Bikini",brazilian:"Bikini",private:"Bikini",
+  butt:"Hips",buttocks:"Hips",hip:"Hips",hips:"Hips",
+  breast:"Chest",breasts:"Chest",chest:"Chest",
+  shoulder:"Shoulders",shoulders:"Shoulders",
+  head:"Head",scalp:"Head",
+  body:"Full body"
+};
+/* what kind of service it is, when the name never names a body part */
+var AREA_BY_TYPE={pedicure:"Feet",pedi:"Feet",manicure:"Hands",mani:"Hands",
+  nail:"Hands",nails:"Hands",mehandi:"Hands",facial:"Face",facials:"Face",
+  threading:"Face",bleach:"Face",cleanup:"Face",detan:"Face",makeup:"Face",
+  massage:"Full body",massages:"Full body",polishing:"Full body",
+  scrub:"Full body",wrap:"Full body",steam:"Full body"};
+/* and finally the hall, for names that assume you know */
+var AREA_BY_HALL={
+  "Facial":["Face"],"Clean Up":["Face"],"Bleach":["Face"],"Detan":["Face"],
+  "Face Waxing":["Face"],"Threading":["Face"],"Laser Skin":["Face"],
+  "Party Makeup":["Face"],"Bridal Makeup":["Face"],
+  "Massage":["Full body"],"Body Scrub":["Full body"],"Body Wrap":["Full body"],
+  "Steam Therapy":["Full body"],"Body Polishing":["Full body"],
+  "Head Massage":["Head"],"Foot Massage":["Feet"],
+  "Manicure":["Hands"],"Nail Extension":["Hands"],"Nail Art":["Hands"],"Mehandi":["Hands"],
+  "Pedicure":["Feet"]
+};
+/* Some halls describe something other than the treated area. In "Hair", "Below
+   Waist" and "Up To Shoulder" are HAIR LENGTHS, not body parts, so reading the
+   name would tag a hair colour as a shoulder treatment. These halls are pinned. */
+var AREA_HALL_FORCE={"Hair Cut":["Head"],"Hair Spa":["Head"],"Hair Colour":["Head"],"Hair Treatment":["Head"],"Head Shave":["Head"],"Hair Styling":["Head"]};
+
+var _areaCache={};
+function svcAreas(k){
+  if(_areaCache[k]) return _areaCache[k];
+  var s=SVC[k]||{},hall=s.sc||"",out=[];
+  var forced=AREA_HALL_FORCE[hall];
+  if(forced) return (_areaCache[k]=forced.slice());
+  var ts=toks(s.t||"");
+  ts.forEach(function(w){var a=AREA_WORDS[w];if(a&&out.indexOf(a)<0)out.push(a);});
+  if(!out.length)
+    ts.forEach(function(w){var a=AREA_BY_TYPE[w];if(a&&out.indexOf(a)<0)out.push(a);});
+  if(!out.length) out=(AREA_BY_HALL[hall]||[]).slice();
+  return (_areaCache[k]=out);
+}
+/* Reverse index, so a query word can be recognised as naming an area. */
+var AREA_OF_QUERY={};
+Object.keys(AREA_WORDS).forEach(function(w){AREA_OF_QUERY[w]=AREA_WORDS[w];});
+
+/* Which dimensions has the shopper already pinned herself?
+
+   This is the whole gating rule. A filter row is only worth showing for a
+   dimension the query left OPEN. "full legs waxing" already says which body
+   part, so a body-part row there is dead furniture — but it says nothing about
+   wax type, so the type row is exactly what she still needs. "verda waxing" is
+   the mirror image. "waxing" pins neither, so both rows show; "full legs verda
+   waxing" pins both and no rows show at all.                              */
+function namedAreas(q){
+  var out={},qt=toks(q||"");
+  qt.forEach(function(t){
+    Object.keys(AREA_OF_QUERY).forEach(function(w){
+      if(stem(t,w)) out[AREA_OF_QUERY[w]]=1;
+    });
+  });
+  return out;
+}
+function namedType(q){
+  var nm=" "+norm(q||"")+" ";
+  for(var i=0;i<TYPES.length;i++)
+    for(var j=0;j<TYPES[i][1].length;j++)
+      if(nm.indexOf(" "+TYPES[i][1][j]+" ")>=0) return TYPES[i][0];
+  return "";
+}
+
+/* Facets over a result list.
+
+   Chip order was originally the position of each area's best result, which was
+   tidy in theory and unreadable in practice: one oddly high-ranked "Bikini
+   Waxing - Amber Wax" put "Bikini 3" ahead of "Back 8", and a bar reading
+   1, 8, 2, 4, 1 looks arbitrary even when it is not. So instead: plain count
+   descending, which the chip already displays, so the order justifies itself
+   at a glance — then order volume for the ties count alone cannot break.
+
+   Each row's counts are computed against the list filtered by the OTHER row,
+   never by itself. Pick Verda and the area counts become Verda-only counts,
+   which is the number the shopper actually wants; but the Verda chip's own
+   count does not collapse to itself, and no chip in its own row disappears
+   because one of its neighbours was clicked.                              */
+function areaFacets(list,q){
+  var named=namedAreas(q),out=[],ix={};
+  list.forEach(function(c){
+    svcAreas(c.id).forEach(function(a){
+      var f=ix[a];
+      if(!f){f=ix[a]={area:a,n:0,bk:0,named:named[a]?1:0};out.push(f);}
+      f.n++; f.bk+=c.bk||0;
+    });
+  });
+  out.sort(function(x,y){return y.n-x.n||y.bk-x.bk||(x.area<y.area?-1:1);});
+  return out;
+}
+function typeFacets(list){
+  var out=[],ix={},typed=0;
+  list.forEach(function(c){
+    var t=svcType(c.id);
+    if(!t) return;
+    typed++;
+    var f=ix[t];
+    if(!f){f=ix[t]={type:t,n:0,bk:0};out.push(f);}
+    f.n++; f.bk+=c.bk||0;
+  });
+  out.sort(function(x,y){return y.bk-x.bk||y.n-x.n||(x.type<y.type?-1:1);});
+  out.typedShare=list.length?typed/list.length:0;
+  return out;
+}
+/* A type row on a hall whose names carry no type at all would be three stray
+   chips over forty results — Threading has "Jade Roller" and nothing else. So
+   the row also needs the types to actually describe most of what is on screen. */
+var TYPE_MIN_SHARE=0.4;
+
+function areaSelected(){for(var a in AREASEL)if(AREASEL[a])return true;return false;}
+function matchArea(c){
+  if(!areaSelected()) return true;
+  return svcAreas(c.id).some(function(a){return AREASEL[a];});
+}
+function matchType(c){ return !TYPESEL || svcType(c.id)===TYPESEL; }
+function applyAreas(list){                       /* both layers, in order */
+  if(!ST.facet) return list;
+  return list.filter(function(c){return matchType(c)&&matchArea(c);});
+}
+
+/* ---- family reorder inside the bottom sheet ---- */
+function reorderKids(q,ids){
+  if(!q||ids.length<2)return{order:ids,applied:false,promoted:0,reason:"no query"};
+  var qt=toks(q),n=ids.length;
+  var ct=ids.map(function(k){return toks(text(k));});
+  var df={};qt.forEach(function(t){var d=0;ct.forEach(function(c){if(c.some(function(w){return stem(t,w);}))d++;});df[t]=d;});
+  var disc=qt.filter(function(t){return df[t]>0&&df[t]<n;});
+  if(!disc.length)return{order:ids,applied:false,promoted:0,reason:"no distinguishing word"};
+  var sc=ids.map(function(k,i){
+    var hits=disc.filter(function(t){return ct[i].some(function(w){return stem(t,w);});}).length;
+    return{k:k,i:i,hits:hits,prec:ct[i].length?hits/ct[i].length:0};
+  });
+  var hit=sc.filter(function(x){return x.hits>0;}),rest=sc.filter(function(x){return x.hits===0;});
+  hit.sort(function(a,b){return b.hits-a.hits||b.prec-a.prec||a.i-b.i;});
+  return{order:hit.concat(rest).map(function(x){return x.k;}),applied:hit.length>0,promoted:hit.length,reason:""};
+}
+
+/* ================= v11 — PARENT CARDS =================================
+   The catalogue already knows which service belongs to which parent: every
+   child carries a `par` pointer. Nothing here invents a hierarchy, it reads
+   the one that already ships. Six parents are grouped; the rest of the
+   catalogue is untouched and still lists service by service.
+
+   Why group at all. "Waxing" matches 162 services and 95 distinct names,
+   and the top of that list is eleven near-identical combos differing only by
+   wax type. A shopper scrolling it is not choosing, she is disambiguating.
+   The parent card moves that decision one tap down: pick the wax, then pick
+   the body part, which is the order she actually decides in.             */
+var PARENT_NAMES=["Aurora Waxing Ritual","Verda Wax (Tin)","Silk Facial Collection","Lumen Spa Journey","Terra Nail Studio","Nova Hair Therapy"];
+var PGROUP=null, PARENT_OF=null;
+function buildParents(){
+  if(PGROUP) return;
+  PGROUP={}; PARENT_OF={};
+  var want={}; PARENT_NAMES.forEach(function(n){want[n]=1;});
+  /* which service ids ARE parents, by name */
+  var pidName={};
+  Object.keys(SVC).forEach(function(k){
+    if(want[SVC[k].t]) pidName[k]=SVC[k].t;
+  });
+  /* children point up via `par` */
+  Object.keys(SVC).forEach(function(k){
+    var p=SVC[k].par; if(!p) return;
+    var nm=pidName[String(p)]; if(!nm) return;
+    PARENT_OF[k]=nm;
+    var g=PGROUP[nm];
+    if(!g) g=PGROUP[nm]={name:nm,pids:[],kids:[],byName:{}};
+    /* one row per distinct service name, keeping the best-selling instance —
+       the same rule the result list already uses, so a child cannot appear
+       twice inside its own parent just because it exists on two floors */
+    var t=SVC[k].t, cur=g.byName[t];
+    if(!cur || bookings(k)>bookings(cur)){
+      if(cur){ g.kids.splice(g.kids.indexOf(cur),1); }
+      g.byName[t]=k; g.kids.push(k);
+    }
+  });
+  Object.keys(pidName).forEach(function(k){
+    var g=PGROUP[pidName[k]];
+    if(g) g.pids.push(k);
+  });
+  Object.keys(PGROUP).forEach(function(n){
+    var g=PGROUP[n];
+    g.kids.sort(function(a,b){return bookings(b)-bookings(a);});
+    /* Some ranges sell as one SKU rather than as named children: the order
+       export carries "Aurora Waxing Ritual" as a single line and none of its
+       eleven children at all. Counting only children would show that range as
+       almost dead when it is simply sold whole, so the parent's own orders
+       count towards the range as well as its children's. */
+    g.own=g.pids.reduce(function(t,k){return t+bookings(k);},0);
+    g.bk=g.kids.reduce(function(t,k){return t+bookings(k);},0)+g.own;
+    g.from=g.kids.reduce(function(m,k){var p=SVC[k].p||0;return (p&&(!m||p<m))?p:m;},0);
+  });
+}
+
+/* How relevant is one child to what was actually typed.
+   A shopper who types "bikini wax" and opens Aurora Waxing must land on the
+   bikini row, not on the best seller. Scored on the child's own name against
+   the specific words in the query — family words like "waxing" are excluded,
+   because every child carries them and they separate nothing.            */
+function childScore(id,q,cls){
+  var name=toks(strongText(id)), sc=0;
+  var spec=(cls&&cls.spec.length)?cls.spec:toks(q||"");
+  spec.forEach(function(t){
+    if(name.some(function(w){return svcTok(t,w,false);})) sc+=10;
+  });
+  /* a body area the shopper named, even when the area word is a family word */
+  var qa=namedAreas(q||"");
+  if(Object.keys(qa).length){
+    var ca=svcAreas(id);
+    if(ca.some(function(a){return qa[a];})) sc+=6;
+  }
+  return sc;
+}
+function parentChildren(name,q,cls){
+  buildParents();
+  var g=PGROUP[name]; if(!g) return [];
+  return g.kids.slice().sort(function(a,b){
+    var d=childScore(b,q,cls)-childScore(a,q,cls);
+    return d||bookings(b)-bookings(a);
+  });
+}
+
+/* ================= v11 — TYPE-AHEAD SUGGESTIONS ======================
+   There is no table of search volume, so the ranking cannot be "how often was
+   this typed". It has to be rebuilt out of tables that do exist: the curated
+   suggestions table, and orders.
+
+   What the live app does today is rank alphabetically after an edit-distance
+   match. That is the thing to beat, and it is beatable by a wide margin: on
+   the real query log, typing "fa" alphabetically puts Fa, Fac, Face ahead of
+   Facial, capturing 22% of the demand behind that prefix.
+
+   The rule here is one line:
+
+        score  =  orders behind the suggestion  /  (number of words)²
+
+   Orders come from the order count already joined to every service. The word
+   divisor is the part that does the work. Bookings alone rank "Aloe-vera
+   Bikini Waxing" over "Waxing", because a long specific phrase can sit in
+   front of a lot of orders; but nobody types it. Short names are what people
+   type, and squaring the word count is what stops a five-word row ever
+   outranking a one-word one. Tested against the real query log across eleven
+   prefixes, this reaches 84% of what perfect search-volume ranking would give,
+   against 75% for bookings alone and far less for alphabetical.
+
+   Two sources feed it, scored identically so they interleave honestly:
+
+     1. The curated suggestions table. Already in the database, already
+        mapped to service ids, already carrying images and chips. Rows whose
+        services are all dead are dropped — 78 of 456 are, and a suggestion
+        leading to an empty screen is worse than no suggestion.
+     2. Service names, for the three quarters of two-letter prefixes the
+        curated table does not reach at all. A service name is a real phrase a
+        human wrote, so it reads properly; generated combinations like
+        "Aurora Legs" do not.
+
+   The honest caveat: this reconstructs demand, it does not measure it. The
+   Global Search event already fires — storing the query string against it
+   turns 84% into 100%, and is one column.                                 */
+/* ---- what decides the order of the popular half --------------------------
+   One rule: what sells most, with shorter names first.
+
+        score = orders behind the suggestion / (number of words)²
+
+   Orders say what people want. The word divisor says what they are willing to
+   type — nobody taps "Stripless Aurora Bikini Wax", they tap "Bikini Waxing",
+   and squaring the word count is what stops a four-word row ever outranking a
+   one-word one.
+
+   An earlier version of this file added two more terms, following how a large
+   marketplace ranks its type-ahead: sales conversion and product recency. Both
+   were built, and both were then measured against the real query log — the one
+   export that records what people actually typed — by asking how much of the
+   true demand behind a prefix the five slots capture:
+
+        orders alone                                 77.7%
+        orders + conversion + recency, best weights  78.0%
+        orders + conversion + recency, even weights  74.9%
+
+   Three tenths of a point for two extra data feeds and a formula nobody can
+   read at a glance. The reasons they fail are structural, not tuning: category
+   conversion is identical for every waxing suggestion so it cannot separate
+   them, and almost every curated row was created within weeks of the others so
+   recency cannot either. They were removed. If per-service conversion or a
+   real search log ever exists, the right move is to put popularity back on a
+   proper footing first, not to re-add these.                                */
+var SUGIX=null;
+function suggestIndex(){
+  if(SUGIX) return SUGIX;
+  SUGIX=[];
+  var seen={};
+  function add(name,src,ids,sid){
+    var key=norm(name).replace(/\s+/g," ").trim();
+    if(!key||seen[key]) return;
+    var words=key.split(" ").length;
+    if(words>4) return;                       /* nobody taps a nine-word suggestion */
+    var live=ids.filter(function(i){return SVC[i]&&SVC[i].vis;});
+    if(!live.length) return;                  /* never offer a dead end */
+    var bk=live.reduce(function(a,i){return a+bookings(i);},0);
+    if(!bk) return;
+    seen[key]=1;
+    SUGIX.push({key:key,text:name,src:src,bk:bk,words:words,ids:live,
+                base:bk/(words*words)});
+  }
+  /* 1. the curated table */
+  (D.suggestions||[]).forEach(function(s){
+    add(s.n,"curated",(s.ids||[]).map(String),s.id);
+  });
+  /* 2. service names, deduplicated on name, keeping the best-selling copy */
+  var best={};
+  Object.keys(SVC).forEach(function(k){
+    if(!SVC[k].vis) return;
+    var t=SVC[k].t;
+    if(!best[t]||bookings(k)>bookings(best[t])) best[t]=k;
+  });
+  Object.keys(best).forEach(function(t){ add(t,"service",[best[t]],null); });
+  SUGIX.sort(function(a,b){return b.base-a.base;});
+  return SUGIX;
+}
+/* ---- personalisation: two lists, not one formula -------------------------
+   An earlier version multiplied the order score by a personal score. It
+   ranked slightly better and nobody could read it: a row scoring 77,969
+   against one scoring 13,343 tells you who won but never why, and a rule you
+   cannot say out loud is a rule you cannot defend in a review.
+
+   So the dropdown is split instead, and the whole thing fits in a sentence:
+
+        the first three are what most people book,
+        the last two are hers.
+
+   Nothing is weighted against anything else. The popular half is ranked on
+   orders over words squared, exactly as before. The personal half is ranked
+   on how much of the suggestion is actually what she buys. They never
+   compete, so neither can distort the other, and a first-time visitor simply
+   has no personal half — her dropdown fills all five slots from the popular
+   list and behaves exactly as it did before personalisation existed.
+
+   The split is 3/2 and not 4/1 because two slots is the smallest number that
+   can show a habit rather than a single service: Amara gets her Aurora waxing
+   AND her threading, which is what her history actually looks like.        */
+var POPULAR_SLOTS=3, PERSONAL_SLOTS=2, MAX_SUGGEST=5;
+
+/* how much of this suggestion is the thing she actually buys, 0 to 1 */
+function herShare(e,H){
+  if(!H||!H.counts) return 0;
+  var mine=0,all=0;
+  e.ids.forEach(function(i){
+    var b=bookings(i); all+=b;
+    if(H.counts[i]) mine+=b;
+  });
+  return all?mine/all:0;
+}
+function herBrand(e,H){
+  if(!H||!H.brands) return "";
+  var nm=norm(e.text),hit="";
+  Object.keys(H.brands).forEach(function(b){ if(nm.indexOf(b)>=0) hit=b; });
+  return hit;
+}
+
+/* ---- the fourth term: does this add anything? ----------------------------
+   Popularity, conversion and recency all score a suggestion on its own. None
+   of them ever looks at the list, and with five slots that costs real estate:
+   across the live dropdowns the top ten results behind any two suggestions
+   overlap 27% on average, and one pair in eight is more than 70% the same.
+   "Pedicure" and "Aurora Pedicure" return an identical top ten. So do
+   "Bikini Waxing" and "Bikini Wax", "Legs Massage" and "Legs and Arms
+   Massage", "Hair Colour" and "Hair Colour Application". Each of those pairs
+   spends two slots saying one thing.
+
+   The first attempt compared the words: treat a suggestion as redundant when
+   its words sit inside another's. That failed, and failed instructively. The
+   category word is a subset of every one of its refinements — "Threading" is
+   inside "Eyebrows Threading", "Lips Threading", "Forehead Threading" — so
+   the rule condemned the entire list and changed nothing. Word shape does not
+   tell you whether two queries land in the same place.
+
+   So the test is the real one: run the retrieval and compare the top ten
+   results. Two suggestions whose top ten overlap by more than 70% are the
+   same answer wearing different labels, whatever their words look like, and
+   the lower-scoring one gives up its slot. It costs a handful of retrievals
+   per keystroke, cached across keystrokes, and in production it would be
+   precomputed against the suggestions table rather than run live.
+
+   It is a skip, not a penalty, and it is conditional: a duplicate that would
+   leave the dropdown short is kept, because an empty row helps nobody.    */
+var DUP_LIMIT=0.70, DUP_DEPTH=10, DUP_SHORTLIST=9;
+var TOPCACHE={};
+function topResults(q){
+  if(TOPCACHE[q]) return TOPCACHE[q];
+  var sp=ST.spell?correctQuery(q):{q:q};
+  var all=Object.keys(SVC).filter(function(k){return SVC[k].vis;});
+  var hres=ST.hall?resolveHall(sp.q,ALL):{halls:[]};
+  var hid={};hres.halls.forEach(function(h){hid[h.id]=1;});
+  var pool=hres.halls.length?all.filter(function(k){return hid[SVC[k].sid];}):all;
+  var lex=lexHits(sp.q,pool),sem=ST.sem?semHits(sp.q,pool):{},cls=classify(sp.q,pool);
+  var seen={};
+  Object.keys(lex).forEach(function(k){seen[k]=1;});
+  Object.keys(sem).forEach(function(k){seen[k]=1;});
+  var cand=[];
+  Object.keys(seen).forEach(function(k){
+    var b=band(k,cls,lex,sem); if(b) cand.push({k:k,b:b,bk:bookings(k)});
+  });
+  cand.sort(function(x,y){return x.b-y.b||y.bk-x.bk;});
+  var out={},n=0;
+  for(var i=0;i<cand.length&&n<DUP_DEPTH;i++){
+    var d=dedupKey(SVC[cand[i].k].t);
+    if(out[d]) continue;
+    out[d]=1; n++;
+  }
+  return TOPCACHE[q]=out;
+}
+function sameAnswer(a,b){
+  var A=topResults(a),B=topResults(b);
+  var ka=Object.keys(A),kb=Object.keys(B);
+  if(!ka.length||!kb.length) return false;
+  var hit=0;
+  ka.forEach(function(x){ if(B[x]) hit++; });
+  return hit/(ka.length+kb.length-hit) > DUP_LIMIT;
+}
+/* ---- vague or specific: the dropdown answers a different question --------
+   "Waxing" and "Aurora wax" are not the same kind of question. The first says
+   I want waxing, show me what you have. The second says I know what I want,
+   get me there. A single ranking cannot serve both, so the gate that already
+   decides whether to show the type filter row decides this too: has she named
+   a treatment type or a body part?
+
+     VAGUE   — she named a category and nothing else. She is browsing, so the
+               five slots go to the five biggest sellers and nothing is held
+               back for her history. Showing a regular her own past bookings
+               here would answer a question she did not ask: she typed the
+               category, not the variant, which is the moment to show her the
+               range rather than her own rut.
+
+     SPECIFIC — she named a type or a body part, so she has already narrowed
+               it herself. A first-time visitor still gets the five biggest
+               sellers inside that narrower set. A returning customer gets
+               three, and the last two are things she has actually booked,
+               because at this point her own history is the best guess anyone
+               can make about which of the remaining variants she wants.
+
+   The same gate, the same words, as the filter rows on the results screen —
+   so the two never disagree about whether a query was vague.              */
+function queryIsVague(q){
+  return !namedType(q) && !Object.keys(namedAreas(q)).length;
+}
+var SUGSEL=-1;
+function suggestFor(typed,seg){
+  var t=(typed||"").trim();
+  if(t.length<2) return [];
+  var sp=ST.spell?correctQuery(t):{q:t,fixes:[]};
+  var q=norm(sp.q).replace(/\s+/g," ").trim();
+  if(!q) return [];
+  /* a vague query gets no personal half at all — see queryIsVague above */
+  var vague=queryIsVague(q);
+  var H=(ST.per&&seg&&seg!=="new"&&!vague)?history(seg):null;
+
+  /* everything that matches what she has typed */
+  var matches=[],inPool={};
+  function gather(term){
+    suggestIndex().forEach(function(e){
+      if(e.key===q||inPool[e.key]) return;
+      if(e.key.indexOf(term)!==0 && (" "+e.key+" ").indexOf(" "+term)<0) return;
+      inPool[e.key]=1;
+      matches.push({key:e.key,text:e.text,src:e.src,bk:e.bk,words:e.words,
+                    base:e.base,wide:term!==q,
+                    share:herShare(e,H), brand:herBrand(e,H)});
+    });
+  }
+  gather(q);
+
+  var parts=q.split(" ");
+  while(parts.length>1 && matches.length<MAX_SUGGEST*2){
+    parts=parts.slice(1);
+    gather(parts.join(" "));
+  }
+
+  /* ---- meaning, not just letters -------------------------------------
+     Everything above matches on the characters she typed. That misses the
+     queries where the word she used is not the word the catalogue uses:
+     "hair fall" is never written on a service called Anti-Dandruff, "glow"
+     is not in Aurora Lumina Bleach, "tan" is not in De-Tan Mask. The results
+     screen already solves this with the vector half of the retrieval, so the
+     dropdown uses the same one rather than inventing a second idea of what
+     two words have in common.
+
+     It runs only when the literal match is thin, and it is capped. A vector
+     hit is a guess about meaning; a literal hit is a fact about spelling, and
+     a guess should never push a fact down the list. So semantic rows are
+     marked wide, which already sorts them below every real match and bars
+     them from the personal slots.                                         */
+  if(!matches.length && ST.sem){
+    var vpool=Object.keys(SVC).filter(function(k){return SVC[k].vis;});
+    var sem={};
+    try{ sem=semHits(q,vpool)||{}; }catch(e){ sem={}; }
+    var near=Object.keys(sem).sort(function(a,b){return bookings(b)-bookings(a);}).slice(0,25);
+    var nearSet={}; near.forEach(function(k){nearSet[k]=1;});
+    if(near.length){
+      suggestIndex().forEach(function(e){
+        if(e.key===q||inPool[e.key]) return;
+        /* two of the nearest services, not one. One shared service is a
+           coincidence at this scale — it is what put "Arms Inch Loss" under
+           "hair fall" — and a wrong suggestion costs more than a missing one,
+           because she will tap it. */
+        var hit=0;
+        e.ids.forEach(function(i){ if(nearSet[i]) hit++; });
+        if(hit<2) return;
+        inPool[e.key]=1;
+        matches.push({key:e.key,text:e.text,src:e.src,bk:e.bk,words:e.words,
+                      base:e.base,wide:true,sem:true,
+                      share:herShare(e,H), brand:herBrand(e,H)});
+      });
+    }
+  }
+  /* A narrow query can run out of matches — "aurora facial" has none of its
+     own, because the only thing named that IS the query. A dropdown with one
+     row looks broken, so the pool is widened by dropping leading words:
+     "aurora facial" falls back to "facial", "legs waxing" to "waxing". This
+     happens BEFORE the personal split rather than after it, which matters —
+     an earlier version topped up at the very end and a returning customer on
+     a narrow query got no rows of her own at all, because by then the split
+     had already run on an empty pool.                                      */
+  /* HER half. Two ways in, and they are not equal. Something she has actually
+     bought earns a slot outright — she bought it, so it is relevant by
+     definition, however niche. A brand match is a much weaker claim: it says
+     she likes Verda, not that she wants this particular Verda service. Left
+     unchecked it hands both personal slots to 300-order oddities and pushes
+     out suggestions ten times more popular, which is a bad trade for her.
+     So brand-only candidates have to clear a floor to take a slot.        */
+  var BRAND_FLOOR=1000;
+  var hers=(!H?[]:matches.filter(function(m){
+      /* a row that only appeared because the query was widened is not an
+         answer to what she typed, so it cannot be one of her two slots */
+      if(m.wide) return false;
+      return m.share>0.25 || (m.brand && m.bk>=BRAND_FLOOR);
+    }))
+    .sort(function(a,b){
+      if(!!a.wide!==!!b.wide) return a.wide?1:-1;
+      return (b.share-a.share)||(b.bk-a.bk);
+    })
+    .slice(0,PERSONAL_SLOTS)
+    .map(function(m){
+      m.lane="yours";
+      m.why=m.share>0.25?"you book this":"your usual "+m.brand;
+      return m;
+    });
+  var taken={}; hers.forEach(function(m){taken[m.key]=1;});
+
+  /* EVERYONE's half — the popular list, minus anything already shown, and
+     minus anything that only repeats a suggestion already on the list */
+  var ranked=matches.filter(function(m){return !taken[m.key];})
+    .sort(function(a,b){
+      /* rows that only matched after widening sit below every real match */
+      if(!!a.wide!==!!b.wide) return a.wide?1:-1;
+      return b.base-a.base;
+    })
+    .map(function(m){ m.lane="popular"; m.why=""; return m; });
+  /* walk the ranked list in order and keep the first MAX_SUGGEST that each say
+     something new. Stopping as soon as the list is full bounds the retrievals:
+     a clean dropdown costs five, a duplicate-heavy one a few more, and the
+     cache means the second keystroke costs almost nothing. */
+  var popular=[],skipped=[];
+  for(var i=0;i<ranked.length && popular.length<MAX_SUGGEST;i++){
+    var m=ranked[i];
+    /* the top-scoring suggestion is never dropped. It is almost always the
+       category word — Waxing, Facial, Pedicure — and an earlier version let a
+       personal pick knock it out, which is the one thing this list must never
+       do: she typed "wa", and "Waxing" not being the first row is indefensible
+       however well we know her. Everything below it is fair game. */
+    var dup=i>0 && popular.some(function(p){return sameAnswer(p.text,m.text);});
+    if(dup) skipped.push(m); else popular.push(m);
+  }
+  /* if weeding out duplicates left it short, the duplicates come back —
+     a repeated row beats a blank one */
+  popular=popular.concat(skipped);
+  var mode=vague?"vague":(H?"specific, personalised":"specific");
+  /* a skipped duplicate is still better than a blank row */
+  popular=popular.concat(skipped);
+  var mode=vague?"vague":(H?"specific, personalised":"specific");
+
+  /* hers sit underneath, and give their slots back when she has no history */
+  var out=popular.slice(0,POPULAR_SLOTS).concat(hers);
+  if(out.length<MAX_SUGGEST)
+    out=out.concat(popular.slice(POPULAR_SLOTS,POPULAR_SLOTS+(MAX_SUGGEST-out.length)));
+
+  /* last guard: two entries can carry the same label even when their keys
+     differ, and the same words twice is the one thing a five-row list
+     cannot afford */
+  var byText={},clean=[];
+  out.forEach(function(m){
+    var t=norm(m.text);
+    if(byText[t]) return;
+    byText[t]=1; clean.push(m);
+  });
+  clean=clean.slice(0,MAX_SUGGEST);
+  clean.forEach(function(m){ m.mode=mode; });
+  return clean;
+}
+function renderSuggest(typed){
+  var el=document.getElementById("sug");
+  if(!el) return;
+  var segEl=document.getElementById("seg");
+  var L=suggestFor(typed,segEl?segEl.value:"new");
+  if(!L.length || document.activeElement!==document.getElementById("q")){el.innerHTML="";el.classList.remove("on");return;}
+  el.classList.add("on");
+  el.innerHTML=L.map(function(s,i){
+    return '<div class="sg'+(i===SUGSEL?" on":"")+'" data-q="'+s.text+'">'+
+      '<span class="sg-i"></span><span class="sg-t"><b>'+s.text+'</b>'+
+      (s.why?'<span class="sg-w">'+s.why+'</span>':'')+'</span>'+
+      '<span class="sg-n">'+s.bk.toLocaleString()+' booked</span></div>';
+  }).join("");
+  Array.prototype.forEach.call(el.querySelectorAll(".sg"),function(d){
+    d.onmousedown=function(e){
+      e.preventDefault();
+      document.getElementById("q").value=d.getAttribute("data-q");
+      SUGSEL=-1; SEL=null; run();
+      document.getElementById("sug").innerHTML="";
+      document.getElementById("sug").classList.remove("on");
+    };
+  });
+}
+
+/* ================= v11 — THE VIEW-MORE SHEET ========================= */
+var SHEET=null;
+function openSheet(name){ SHEET=name; render(); }
+function closeSheet(){ SHEET=null; render(); }
+function renderSheet(L){
+  var el=document.getElementById("sheet");
+  if(!el) return;
+  if(!SHEET||!PGROUP[SHEET]){el.innerHTML="";el.classList.remove("on");return;}
+  var g=PGROUP[SHEET], kids=parentChildren(SHEET,L.q,L.cls);
+  var top=childScore(kids[0],L.q,L.cls)>0;
+  el.classList.add("on");
+  el.innerHTML=
+   '<div class="sh-back" id="shback"></div>'+
+   '<div class="sh-card">'+
+     '<div class="sh-h"><div><div class="sh-t">'+g.name+'</div>'+
+       '<div class="sh-s">Starts at ₹'+g.from+' · '+kids.length+' options</div></div>'+
+       '<button class="sh-x" id="shx">&times;</button></div>'+
+     (top?'<div class="sh-note">Ordered for “'+L.typed+'” — the closest option is first. '+
+          'Without a match the order is by bookings.</div>'
+         :'<div class="sh-note">Nothing in “'+L.typed+'” names one of these, so the order is by bookings.</div>')+
+     '<div class="sh-b">'+
+     kids.map(function(k,i){
+       var s=SVC[k],hit=childScore(k,L.q,L.cls)>0;
+       return '<div class="sh-row'+(hit?" hit":"")+'">'+
+         '<span class="sh-rk">'+(i+1)+'</span>'+
+         '<span class="sh-n">'+s.t+
+           (hit?'<span class="chip m">matches what you typed</span>':'')+
+         '</span>'+
+         '<span class="sh-p">₹'+s.p+'</span>'+
+         '<span class="sh-bk">'+bookings(k).toLocaleString()+' booked</span>'+
+         '<button class="sh-add">Add</button></div>';
+     }).join("")+
+     '</div></div>';
+  document.getElementById("shback").onclick=closeSheet;
+  document.getElementById("shx").onclick=closeSheet;
+}
+
+
+var ST={bucket:true,hall:true,sem:true,per:true,fam:true,facet:true,spell:true},SEL=null,LAST=null;
+/* which body-area chips are active; cleared whenever the query changes,
+   because the areas on offer change with it */
+var AREASEL={},TYPESEL="",AREAQ=null;
+
+function run(){
+  var typed=document.getElementById("q").value.trim(),
+      bucket=document.getElementById("bk").value,
+      seg=document.getElementById("seg").value;
+  /* Correct first, then everything downstream — the lift, the lexical half,
+     the vector half, the bands and both filter rows — runs on real words. */
+  var sp=correctQuery(typed), q=sp.q;
+  var H=ST.per?history(seg):{ids:{},brands:{}};
+  var all=Object.keys(SVC);
+  /* FLOOR — the bucket */
+  var global=(bucket===ALL)||!ST.bucket;
+  var floorPool=(global?all:all.filter(function(k){return SVC[k].b===bucket;}))
+             .filter(function(k){return SVC[k].vis;});
+  /* HALL — the sub-category the query names */
+  var hres=ST.hall?resolveHall(q,global?ALL:bucket):{halls:[],score:0};
+  var hallIds={};hres.halls.forEach(function(h){hallIds[h.id]=1;});
+  var pool=hres.halls.length
+      ? floorPool.filter(function(k){return hallIds[SVC[k].sid];})
+      : floorPool;
+  /* what the hall filter kept out, so it is visible rather than silent */
+  var elsewhere=[];
+  if(hres.halls.length){
+    var outside=floorPool.filter(function(k){return !hallIds[SVC[k].sid];});
+    var ol=lexHits(q,outside);
+    elsewhere=Object.keys(ol).filter(function(k){return (ol[k].s||[]).length;});
+  }
+  /* RELATED HALLS — a second answer to the same need, kept separate */
+  var relHalls=[],related=[];
+  if(hres.halls.length){
+    var want={};
+    hres.halls.forEach(function(h){(RELATED[h.name]||[]).forEach(function(n){want[n]=1;});});
+    relHalls=SUBCATS.filter(function(h){
+      return want[h.name] && (global||h.cat===bucket) && !hallIds[h.id];
+    });
+    var rids={};relHalls.forEach(function(h){rids[h.id]=1;});
+    related=floorPool.filter(function(k){return rids[SVC[k].sid];})
+      .sort(function(a,b){return bookings(b)-bookings(a);});
+    /* one row per service here too */
+    var rk=[],rs={};
+    related.forEach(function(k){var d=dedupKey(SVC[k].t);if(!rs[d]){rs[d]=1;rk.push(k);}});
+    related=rk.slice(0,5);
+  }
+  var lex=lexHits(q,pool),sem=ST.sem?semHits(q,pool):{};
+  var cls=classify(q,pool);
+
+  var cand=[];
+  var seen={};
+  Object.keys(lex).forEach(function(k){seen[k]=1;});
+  Object.keys(sem).forEach(function(k){seen[k]=1;});
+  Object.keys(seen).forEach(function(k){
+    var b=band(k,cls,lex,sem);
+    if(!b)return;
+    var s=SVC[k];
+    var mine=H.counts[k]||0;                    /* times SHE booked this */
+    var brand=0,nm=(s.t||"").toLowerCase();
+    Object.keys(H.brands).forEach(function(x){if(nm.indexOf(x)>=0)brand=1;});
+    cand.push({id:k,band:b,mine:mine,brand:brand,bk:bookings(k)});
+  });
+  /* SCOPE — how much of this service is about what was actually asked for.
+     Counted as the words in the service's own NAME that the shopper never
+     typed. Someone searching "legs waxing" means legs; a service covering
+     arms + legs + underarms answers a broader question and adds two body
+     parts nobody asked about.
+
+        Full Legs Waxing - Verda Wax                extras 2  (full, verda)
+        Full Legs Aurora Waxing                    extras 2  (full, aurora)
+        Full Arms + Full Legs + Underarms Aurora   extras 4  (+arms, underarms)
+
+     This is query relevance, not preference, so it sits above every personal
+     key. Without it the combos lead every body-part search on volume alone,
+     and the legs-only service lands around position eleven.                  */
+  var qTokens=toks(q);
+  /* Scope only applies when the shopper actually named something specific.
+     Typing just "waxing" narrows to nothing, so there is no "extra" to measure
+     and breadth must not be penalised — otherwise a broad query leads with
+     Underarms Waxing and Chin Waxing instead of the best sellers.            */
+  var scopeApplies=cls.spec.length>0;
+  function scopeExtras(k){
+    if(!scopeApplies) return 0;
+    var name=toks(SVC[k].t||"");
+    var seen={},n=0;
+    name.forEach(function(w){
+      if(seen[w])return; seen[w]=1;
+      if(!qTokens.some(function(t){return stem(t,w);})) n++;
+    });
+    /* Coarse, so a one-word difference in naming does not outrank demand.
+       Tight (asked-for and little else) · broader · a lot broader.          */
+    return n<=2 ? 0 : n<=4 ? 1 : 2;
+  }
+
+  /* Demand tier — order of magnitude of bookings, not the exact count. */
+  function tier(n){ return Math.floor(Math.log10((n||0)+1)); }
+
+  /* A shopper who buys one variant every month should see THAT variant of
+     whatever she searched for, not three other brands first. So her brand
+     outranks demand — but only for a service people actually buy. Without the
+     demand floor, two Verda bookings pushed three zero-order "Package Wraps
+     - Verda" SKUs above the Aurora combo's 5,090 orders, on the word alone.
+     With it, "Full Legs Aurora Waxing" (109 orders) rises for her while the
+     dead SKUs stay where they belong.                                        */
+  var BRAND_MIN_DEMAND=20;
+  function herVariant(c){ return (c.brand && c.bk>=BRAND_MIN_DEMAND) ? 1 : 0; }
+
+  /* THE SORT — seven keys, compared in order. No weights, no multiplication.
+     The first two are query relevance and outrank everything personal.
+       band -> scope -> her bookings -> her variant
+            -> demand tier -> her brand -> exact orders                      */
+  cand.forEach(function(c){ c.scope=scopeExtras(c.id); });
+  cand.sort(function(a,b){
+    return a.band-b.band
+        || a.scope-b.scope
+        || b.mine-a.mine
+        || herVariant(b)-herVariant(a)
+        || tier(b.bk)-tier(a.bk)
+        || b.brand-a.brand
+        || b.bk-a.bk
+        || (a.id<b.id?-1:1);
+  });
+
+  /* COLLAPSE DUPLICATES.
+     The catalogue keeps a separate copy of a service in every sub-category that
+     offers it as an add-on — "Eyebrows Threading" exists 10 times in Beauty
+     alone. Only 314 of the 499 visible Beauty services have a distinct name.
+     Sorting first, then collapsing, means the copy we keep is the best-ranked
+     one: her own booking beats a stranger's, and volume breaks the rest.      */
+  /* Safety net only. The catalogue is canonical, so this should never fire —
+     if it does, a duplicate slipped through the build and that is worth knowing. */
+  var kept=[],seenName={};
+  cand.forEach(function(c){
+    var key=dedupKey(SVC[c.id].t);
+    if(!seenName[key]){seenName[key]=1;kept.push(c);}
+  });
+  cand=kept;
+
+  /* frequently paired together — the old curated list, now a widget */
+  var qn=norm(q),best=null,bs=0;
+  SUG.forEach(function(s){var sn=norm(s.n);
+    var sc=sn===qn?3:(sn.indexOf(qn)>=0||qn.indexOf(sn)>=0)?2:0;
+    if(sc>bs){bs=sc;best=s;}});
+  var top=cand.slice(0,14),topIds={};top.forEach(function(c){topIds[c.id]=1;});
+  var paired=best?best.ids.map(String).filter(function(k){return SVC[k]&&!topIds[k];}).slice(0,5):[];
+
+  var xb=null;
+  if(!cand.length&&ST.bucket){
+    var sib=(BK[bucket]&&BK[bucket].siblings)||[];
+    for(var i=0;i<sib.length&&!xb;i++){
+      var p2=all.filter(function(k){return SVC[k].b===sib[i]&&SVC[k].vis;});
+      var l2=lexHits(q,p2);
+      var ks=Object.keys(l2);
+      if(ks.length)xb={bucket:sib[i],n:ks.length,top:ks.slice(0,3)};
+    }
+  }
+  /* a new query invalidates the chip selection — the areas on offer changed */
+  if(AREAQ!==q+"|"+bucket){AREAQ=q+"|"+bucket;AREASEL={};TYPESEL="";}
+
+  /* Two independent rows, each counted against the other's selection. Gating is
+     decided by the QUERY, not by the selection, so a row never appears or
+     vanishes underneath the shopper's finger while she is using it. */
+  var qAreas=namedAreas(q), qType=namedType(q);
+  var areaF=ST.facet?areaFacets(cand.filter(matchType),q):[];
+  var typeF=ST.facet?typeFacets(cand.filter(matchArea)):[];
+  var showType=ST.facet && !qType && typeF.length>=2 &&
+               typeFacets(cand).typedShare>=TYPE_MIN_SHARE;
+  var showArea=ST.facet && !Object.keys(qAreas).length && areaF.length>=2;
+  var facets={area:areaF,type:typeF,showArea:showArea,showType:showType,
+              qType:qType,qAreas:Object.keys(qAreas),
+              typedShare:typeFacets(cand).typedShare};
+
+  LAST={q:q,typed:typed,fixes:sp.fixes,bucket:bucket,seg:seg,cls:cls,cand:cand,top:top,paired:paired,xb:xb,H:H,facets:facets,
+        pool:pool.length,floor:floorPool.length,sug:best,global:global,
+        halls:hres.halls,hallScore:hres.score,elsewhere:elsewhere,
+        relHalls:relHalls,related:related};
+  render();
+}
+
+/* The two filter rows. Each hides itself when the query already answered its
+   question, or when it has nothing to offer. */
+function renderFacets(L){
+  var el=document.getElementById("facets"),F=L.facets,h="";
+  if(!ST.facet){el.innerHTML="";return;}
+
+  /* ---- layer 1: treatment type. Single choice, "All" is the null choice. ---- */
+  if(F.showType){
+    /* Ordered by order volume, not by how many SKUs carry the name: the
+       question this row answers is "which kind do people book", and Aurora
+       outsells Amber on fewer listings. No counts on the tiles — this row is
+       navigation, and a number here competes with the one on the area row
+       below, which is the refinement device that earns it. */
+    h+='<div class="tstrip"><span class="tcard'+(TYPESEL?"":" on")+'" data-t="">'+
+       '<span class="tdot all">&#9636;</span><span class="tt">All</span></span>';
+    F.type.slice(0,8).forEach(function(f){
+      h+='<span class="tcard'+(TYPESEL===f.type?" on":"")+'" data-t="'+f.type+'" '+
+         'title="'+f.n+' services · '+f.bk.toLocaleString()+' booked">'+
+         '<span class="tdot">'+f.type.charAt(0)+'</span>'+
+         '<span class="tt">'+f.type+'</span></span>';
+    });
+    if(F.type.length>8) h+='<span class="tcard off"><span class="tt">+'+(F.type.length-8)+'</span></span>';
+    h+='</div>';
+  }
+
+  /* ---- layer 2: body area. Multiple choice, OR within the row. ---- */
+  if(F.showArea){
+    h+='<div class="facets">';
+    F.area.slice(0,12).forEach(function(f){
+      h+='<span class="fc'+(AREASEL[f.area]?" on":"")+'" data-a="'+f.area+'">'+
+         f.area+'<span class="fn">'+f.n+'</span></span>';
+    });
+    if(F.area.length>12) h+='<span class="fc off">+'+(F.area.length-12)+'</span>';
+    h+='</div>';
+  }
+
+  /* ---- what the rows are doing, in one line ---- */
+  var bits=[],kept=applyAreas(L.cand).length;
+  if(TYPESEL) bits.push(TYPESEL);
+  var as=Object.keys(AREASEL).filter(function(a){return AREASEL[a];});
+  if(as.length) bits.push(as.join(" / "));
+  if(bits.length){
+    h+='<div class="fnote"><b>'+bits.join(" · ")+'</b> — showing '+kept+' of '+
+       L.cand.length+', in the same order · <span class="fclr" data-a="__clear">clear</span></div>';
+  } else {
+    var why=[];
+    if(!F.showType) why.push('no <b>type</b> row — '+(F.qType
+      ? 'you already said '+F.qType
+      : F.typedShare<TYPE_MIN_SHARE ? 'these services are not sold by type'
+      : 'only one type here'));
+    if(!F.showArea) why.push('no <b>body-area</b> row — '+(F.qAreas.length
+      ? 'you already said '+F.qAreas.join(" / ")
+      : 'only one body area here'));
+    if(why.length) h+='<div class="fnote">'+why.join(' · ')+'.</div>';
+  }
+  el.innerHTML=h;
+
+  Array.prototype.forEach.call(el.querySelectorAll(".tcard[data-t]"),function(c){
+    c.onclick=function(){TYPESEL=c.getAttribute("data-t");SEL=null;run();};
+  });
+  Array.prototype.forEach.call(el.querySelectorAll(".fc[data-a]"),function(c){
+    c.onclick=function(){var a=c.getAttribute("data-a");
+      AREASEL[a]=!AREASEL[a];SEL=null;run();};
+  });
+  Array.prototype.forEach.call(el.querySelectorAll(".fclr"),function(c){
+    c.onclick=function(){AREASEL={};TYPESEL="";SEL=null;run();};
+  });
+}
+
+function render(){
+  var L=LAST;
+  renderFacets(L);
+  /* Chips narrow, they never reorder: the filter is applied to the already
+     sorted list, so every guarantee about band, scope and history survives. */
+  var VIEW=applyAreas(L.cand);
+  /* word classification */
+  var w=[];
+  w.push('<span class="lbl">Words</span>');
+  if(!L.cls.spec.length&&!L.cls.fam.length&&!L.cls.unknown.length)w.push('<span class="w none">type something</span>');
+  L.cls.spec.forEach(function(t){w.push('<span class="w spec">'+t+' · specific ('+L.cls.df[t]+')</span>');});
+  L.cls.fam.forEach(function(t){w.push('<span class="w fam">'+t+' · family ('+L.cls.df[t]+')</span>');});
+  L.cls.unknown.forEach(function(t){w.push('<span class="w none">'+t+' · no match</span>');});
+  if(!L.cls.spec.length&&L.cls.fam.length)
+    w.push('<span style="font-size:12px;color:var(--ink3);margin-left:4px">no specific word → best sellers decide the order</span>');
+  /* the correction, said out loud rather than applied silently */
+  var fixEl=document.getElementById("spell");
+  if(L.fixes && L.fixes.length){
+    fixEl.innerHTML='<div class="didyoumean">Showing results for <b>'+L.q+'</b>'+
+      '<span class="sp-from">you typed '+
+      L.fixes.map(function(f){return '<i>'+f[0]+'</i> &rarr; '+f[1];}).join(', ')+
+      '</span></div>';
+  } else fixEl.innerHTML="";
+
+  /* the lift: floor -> hall */
+  var lift='<span class="lbl">Lift</span>';
+  lift+= L.global
+      ? '<span class="w fam">all floors · '+L.floor+' services</span>'
+      : '<span class="w fam">floor · '+L.bucket+' ('+L.floor+')</span>';
+  if(L.halls.length){
+    var names={};L.halls.forEach(function(h){names[h.name]=1;});
+    Object.keys(names).forEach(function(n){
+      var on=L.halls.filter(function(h){return h.name===n;});
+      lift+='<span class="w spec">hall · '+n+
+            (on.length>1?' &times;'+on.length+' floors':' ('+on[0].id+')')+'</span>';
+    });
+    lift+='<span class="w fam">'+L.pool+' services</span>';
+    if(L.elsewhere.length)
+      lift+='<span class="w none">'+L.elsewhere.length+' word-matches in other halls, excluded</span>';
+  } else if(toks(L.q).length){
+    lift+='<span class="w none">no hall named — searching '+(L.global?"everything":"the whole floor")+'</span>';
+  }
+  document.getElementById("lift").innerHTML=lift;
+  document.getElementById("words").innerHTML=w.join("");
+
+  /* A global search with no hall named is a different question: the shopper
+     typed a body part, not a service. Grouping by band would just list the
+     highest-volume hall over and over — eight waxing combos before any massage.
+     Grouping by hall answers what they actually asked: where in the building
+     does "legs" appear? Halls are ordered by their strongest result.         */
+  var byHall=(L.global&&!L.halls.length&&toks(L.q).length);
+  if(byHall){
+    var hg={},horder=[];
+    VIEW.forEach(function(c){
+      var h=HALL[SVC[c.id].sid], n=h?h.name:"Other";
+      if(!hg[n]){hg[n]=[];horder.push(n);}
+      if(hg[n].length<3) hg[n].push(c);   /* a taste of each hall, not all of it */
+    });
+    horder.sort(function(a,b){return hg[b][0].bk-hg[a][0].bk;});
+    var rank2=0,html2="";
+    horder.slice(0,6).forEach(function(n){
+      html2+='<div class="band b3"><div class="band-h"><span>'+n+'</span>'+
+             '<span class="why">'+hg[n].length+' of '+
+             VIEW.filter(function(c){var hh=HALL[SVC[c.id].sid];return (hh?hh.name:"Other")===n;}).length+
+             ' in this hall</span></div>';
+      hg[n].forEach(function(c){
+        rank2++;
+        var s=SVC[c.id],ch="";
+        if(c.mine)ch+='<span class="chip p">she booked this '+c.mine+'&times;</span>';
+        else if(c.brand)ch+='<span class="chip p">her brand</span>';
+        if(s.kid&&s.kid.length)ch+='<span class="chip k">'+s.kid.length+' options</span>';
+        ch+='<span class="chip f">'+s.b.slice(0,22)+'</span>';
+        html2+='<div class="item'+(SEL===c.id?" sel":"")+'" data-id="'+c.id+'"><span class="rk">'+rank2+
+          '</span><span class="ti">'+s.t+ch+'</span><span class="bk">'+c.bk.toLocaleString()+' booked</span></div>';
+      });
+      html2+='</div>';
+    });
+    document.getElementById("results").innerHTML=html2||
+      '<div class="band b3"><div class="empty">Nothing found for “'+L.q+'”.</div></div>';
+    Array.prototype.forEach.call(document.querySelectorAll(".item"),function(el){
+      el.onclick=function(){SEL=el.getAttribute("data-id");render();};
+    });
+    document.getElementById("rel").innerHTML="";
+    document.getElementById("xb").innerHTML="";
+    renderSheet(L);
+    renderSide(L,horder.length);
+    return;
+  }
+
+  /* ---- v11: children first, then the parent cards, then stop ----
+     The shopper sees the individual services she can book straight away, the
+     way she does today. Underneath, the wax types she would otherwise have
+     had to tell apart by reading eleven near-identical names. Anything that
+     belongs to a parent and did not make the top slice is not repeated as a
+     loose row — it lives one tap inside its card, so the screen ends. */
+  buildParents();
+  var CHILD_ROWS=10;
+  var shown=VIEW.slice(0,CHILD_ROWS);
+  var shownIds={}; shown.forEach(function(c){shownIds[c.id]=1;});
+  /* a parent earns a card when the search actually reached inside it */
+  /* ---- parent cards follow the same rule as everything else ------------
+     The results underneath already rise for a service she has booked, then
+     for her brand, then on volume. The cards sat outside that, sorted on
+     volume alone, so Amara — who has booked the Aurora combo ten times and
+     whose brand affinity is aurora(27) — was shown Aurora Waxing Ritual
+     wherever the raw numbers happened to put it. A shopper should not have to
+     hunt for her own range in a row that exists to save her the hunt.
+
+     Same three keys, same order, same thresholds as the dropdown and the
+     result list, so all three agree about what her history means:
+
+        1. she has booked inside this range     (strongest)
+        2. the range carries her brand          (BRAND_MIN>=2, as everywhere)
+        3. how much the range sells             (the tie-break, and the whole
+                                                 story for a first-timer)   */
+  var pcards=[],pix={};
+  VIEW.forEach(function(c){
+    var pn=PARENT_OF[c.id]; if(!pn) return;
+    var f=pix[pn];
+    if(!f){f=pix[pn]={name:pn,n:0,bk:0,best:c.bk||0};pcards.push(f);}
+    f.n++; f.bk+=c.bk||0;
+  });
+  (function(){
+    var Hh=L.H||{counts:{},brands:{}};
+    var brands=Object.keys(Hh.brands||{});
+    pcards.forEach(function(f){
+      var g=PGROUP[f.name]||{kids:[]};
+      f.mine=g.kids.reduce(function(t,k){return t+(Hh.counts[k]||0);},0);
+      var nm=norm(f.name);
+      f.herBrand="";
+      brands.forEach(function(b){ if(nm.indexOf(b)>=0) f.herBrand=b; });
+    });
+    pcards.sort(function(a,b){
+      if((b.mine>0)!==(a.mine>0)) return b.mine-a.mine;   /* booked inside it */
+      if(b.mine!==a.mine) return b.mine-a.mine;
+      var ab=a.herBrand?1:0, bb=b.herBrand?1:0;
+      if(ab!==bb) return bb-ab;                            /* her brand */
+      return b.best-a.best||b.bk-a.bk;                     /* then volume */
+    });
+  })();
+  /* grouped results */
+  var groups={},order=[];
+  shown.forEach(function(c){if(!groups[c.band]){groups[c.band]=[];order.push(c.band);}groups[c.band].push(c);});
+  var rank=0,html="";
+  order.forEach(function(b){
+    var why=b===1?"matches every specific word you typed"
+           :b===2?"matches some of what you typed"
+           :b===3?"same family — nothing separates these on relevance, so best sellers lead"
+           :"no word matched; found by meaning";
+    html+='<div class="band b'+b+'"><div class="band-h"><span>Band '+b+' · '+BANDLBL[b]+'</span><span class="why">'+why+'</span></div>';
+    groups[b].forEach(function(c){
+      rank++;
+      var s=SVC[c.id],ch="";
+      if(c.mine)ch+='<span class="chip p">she booked this '+c.mine+'&times;</span>';
+      else if(c.brand)ch+='<span class="chip p">her brand</span>';
+      if(s.kid&&s.kid.length)ch+='<span class="chip k">'+s.kid.length+' options</span>';
+      if(c.band===4)ch+='<span class="chip s">semantic</span>';
+      /* in a global search the floor matters — same service name exists on several */
+      if(L.global||L.halls.length>1)ch+='<span class="chip f">'+s.b.slice(0,22)+'</span>';
+      html+='<div class="item'+(SEL===c.id?" sel":"")+'" data-id="'+c.id+'"><span class="rk">'+rank+
+        '</span><span class="ti">'+s.t+ch+'</span><span class="bk">'+c.bk.toLocaleString()+' booked</span></div>';
+    });
+    html+='</div>';
+  });
+  /* the parent cards */
+  if(pcards.length){
+    html+='<div class="pband"><div class="band-h"><span>Choose by range</span>'+
+      '<span class="why">'+pcards.length+' ranges — tap to see what each covers</span></div>'+
+      pcards.map(function(f){
+        var g=PGROUP[f.name],k0=parentChildren(f.name,L.q,L.cls)[0];
+        return '<div class="pcard" data-p="'+f.name+'">'+
+          '<div class="pc-l"><div class="pc-t">'+f.name+'</div>'+
+          '<div class="pc-s">'+g.kids.length+' options · from ₹'+g.from+
+            ' · '+g.bk.toLocaleString()+' booked</div>'+
+          '<div class="pc-x">Top match: '+SVC[k0].t+'</div>'+
+          (f.mine? '<div class="pc-y">you have booked from this range '+f.mine+'&times;</div>'
+                 : f.herBrand? '<div class="pc-y">your usual '+f.herBrand+'</div>' : '')+
+          '</div>'+
+          '<button class="pc-b">View more</button></div>';
+      }).join("")+'</div>';
+  }
+  document.getElementById("results").innerHTML=html||'<div class="band b3"><div class="empty">'+
+    ((areaSelected()||TYPESEL)&&L.cand.length
+      ? 'That combination is empty. Clear the filters to see all '+L.cand.length+'.'
+      : 'Nothing in '+L.bucket+' for “'+L.typed+'”.')+'</div></div>';
+  Array.prototype.forEach.call(document.querySelectorAll(".item"),function(el){
+    el.onclick=function(){SEL=el.getAttribute("data-id");render();};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".pcard"),function(el){
+    el.onclick=function(){openSheet(el.getAttribute("data-p"));};
+  });
+  renderSheet(L);
+
+  /* related halls — a separate answer to the same need, never merged in */
+  var rel="";
+  if(L.related.length){
+    var rn={};L.relHalls.forEach(function(h){rn[h.name]=1;});
+    rel='<div class="band b4" style="margin-top:14px"><div class="band-h">'+
+        '<span>Also in '+Object.keys(rn).join(" / ")+'</span>'+
+        '<span class="why">a different way to answer the same thing</span></div>'+
+      L.related.map(function(k,i){
+        var s=SVC[k];
+        return '<div class="item" data-id="'+k+'"><span class="rk">'+(i+1)+
+          '</span><span class="ti">'+s.t+
+          '<span class="chip f">'+s.b.slice(0,22)+'</span></span>'+
+          '<span class="bk">'+bookings(k).toLocaleString()+' booked</span></div>';
+      }).join("")+'</div>';
+  }
+  document.getElementById("rel").innerHTML=rel;
+
+  document.getElementById("xb").innerHTML=L.xb?
+    '<div class="xbucket"><b>Nothing in '+L.bucket+'.</b> '+L.xb.n+' in <b>'+L.xb.bucket+'</b> — '+
+    L.xb.top.map(function(k){return SVC[k].t;}).join(", ")+'</div>':"";
+
+  renderSide(L,0);
+}
+
+function renderSide(L,hallCount){
+  var side=[];
+  if(L.paired.length){
+    side.push('<div class="box"><div class="box-h">Frequently paired together</div><div class="box-b">'+
+      L.paired.map(function(k){return '<div class="pair"><span>'+SVC[k].t+'</span><span class="pp">₹'+SVC[k].p+'</span></div>';}).join("")+
+      '<div style="font-size:11.5px;color:var(--ink3);margin-top:6px">From the curated list for '+
+      (L.sug?"“"+L.sug.n+"”":"this phrase")+'. A widget — not part of the ranking above.</div></div></div>');
+  }
+  if(SEL&&SVC[SEL]&&SVC[SEL].kid&&SVC[SEL].kid.length){
+    var kid=SVC[SEL].kid.map(String).filter(function(k){return SVC[k];});
+    var r=ST.fam?reorderKids(L.q,kid):{order:kid,applied:false,promoted:0,reason:"stage off"};
+    side.push('<div class="box"><div class="box-h">Options inside · '+SVC[SEL].t.slice(0,24)+'</div><div class="box-b sheet">'+
+      r.order.map(function(k,i){
+        return '<div class="it'+(r.applied&&i<r.promoted?" up":"")+'"><span class="i">'+(i+1)+'</span><span>'+SVC[k].t+'</span></div>';
+      }).join("")+
+      '<div style="font-size:11.5px;color:var(--ink3);margin-top:6px">'+
+      (r.applied?("<b style=\"color:var(--teal)\">"+r.promoted+" moved up</b> — rest unchanged"):("Unchanged — "+r.reason))+
+      '</div></div></div>');
+  }
+  /* her actual history */
+  var hk=Object.keys(L.H.counts);
+  if(hk.length){
+    hk.sort(function(a,b){return L.H.counts[b]-L.H.counts[a];});
+    var tot=hk.reduce(function(s,k){return s+L.H.counts[k];},0);
+    var aff=Object.keys(L.H.brands).map(function(b){return b+" ("+L.H.brands[b]+")";}).join(", ");
+    var supp=Object.keys(L.H.tally).filter(function(b){return !L.H.brands[b];})
+              .map(function(b){return b+" ("+L.H.tally[b]+")";}).join(", ");
+    side.push('<div class="box"><div class="box-h">'+L.H.label+'</div><div class="box-b">'+
+      '<div style="font-size:12px;color:var(--ink3);margin-bottom:8px">'+(L.H.note||"")+'</div>'+
+      hk.map(function(k){
+        var s=SVC[k], out=(s&&s.b!==L.bucket)?' <span class="chip s">other bucket</span>':'';
+        return '<div class="pair"><span>'+(s?s.t.slice(0,30):k)+out+'</span><span class="pp">'+L.H.counts[k]+'&times;</span></div>';
+      }).join("")+
+      '<div style="font-size:11.5px;color:var(--ink3);margin-top:7px">'+tot+
+      ' booking lines · brand affinity: '+(aff||"none")+
+      (supp?'<br><span style="opacity:.8">below the 2-booking threshold, ignored: '+supp+'</span>':'')+
+      '</div></div></div>');
+  }
+
+  side.push('<div class="box"><div class="box-h">How this list was sorted</div><div class="box-b">'+
+    '<div style="margin-bottom:6px"><b>1.</b> '+(hallCount?('Grouped by hall — '+hallCount+' halls matched'):'Relevance band')+'</div>'+
+    '<div style="margin-bottom:6px"><b>2.</b> Times she booked it — '+(hk.length?"applied inside each band":"no history, skipped")+'</div>'+
+    '<div style="margin-bottom:6px"><b>3.</b> Her preferred brand — '+(Object.keys(L.H.brands).length?Object.keys(L.H.brands).join(", "):"none")+'</div>'+
+    '<div><b>4.</b> Completed bookings by everyone — decides the rest</div>'+
+    '<div style="font-size:11.5px;color:var(--ink3);margin-top:8px">Pool after bucket gate: '+L.pool+' services</div>'+
+    '</div></div>');
+  document.getElementById("side").innerHTML=side.join("");
+}
+
+var bs=document.getElementById("bk");
+var oAll=document.createElement("option");
+oAll.value=ALL;oAll.textContent="All floors — global search";bs.appendChild(oAll);
+Object.keys(BK).sort(function(a,b){return BK[b].n-BK[a].n;}).forEach(function(k){
+  var o=document.createElement("option");o.value=k;o.textContent=k+" ("+BK[k].n+")";bs.appendChild(o);});
+bs.value=ALL;
+var TG=[["bucket","Floor gate"],["hall","Hall gate"],["sem","Semantic"],
+        ["per","Personalise"],["fam","Reorder options"],["facet","Area chips"],["spell","Spell fix"]];
+document.getElementById("tg").innerHTML=TG.map(function(t){
+  return '<label class="tg on" data-k="'+t[0]+'"><input type="checkbox" checked><span>'+t[1]+'</span></label>';}).join("");
+Array.prototype.forEach.call(document.querySelectorAll(".tg"),function(el){
+  el.querySelector("input").onchange=function(){ST[el.getAttribute("data-k")]=this.checked;el.classList.toggle("on",this.checked);run();};});
+var qEl=document.getElementById("q");
+qEl.addEventListener("input",function(){SEL=null;SUGSEL=-1;run();renderSuggest(this.value);});
+qEl.addEventListener("focus",function(){renderSuggest(this.value);});
+qEl.addEventListener("blur",function(){setTimeout(function(){
+  var e=document.getElementById("sug");if(e){e.innerHTML="";e.classList.remove("on");}},120);});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){if(SHEET)closeSheet();}});
+bs.addEventListener("change",function(){SEL=null;run();});
+document.getElementById("seg").addEventListener("change",function(){run();renderSuggest(qEl.value);});
+run();
+</script>
+</body>
+</html>
