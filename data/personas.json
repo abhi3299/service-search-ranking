@@ -1,0 +1,39 @@
+{
+ "amara": {
+  "label": "Amara \u2014 regular \u00b7 49 lines / 4 months",
+  "note": "Books monthly. Strongly Aurora.",
+  "counts": {
+   "1000": 10,
+   "1345": 6,
+   "1225": 8,
+   "1060": 4,
+   "2057": 7,
+   "2060": 3,
+   "1413": 4,
+   "2486": 2,
+   "1977": 3,
+   "1978": 2
+  }
+ },
+ "kiara": {
+  "label": "Kiara \u2014 occasional \u00b7 4 lines / 4 months",
+  "note": "A couple of waxing visits, tried a few things.",
+  "counts": {
+   "1006": 2,
+   "1700": 1,
+   "2035": 1
+  }
+ },
+ "alia": {
+  "label": "Alia \u2014 new \u00b7 1 line / 4 months",
+  "note": "One booking. Effectively unknown.",
+  "counts": {
+   "1128": 1
+  }
+ },
+ "new": {
+  "label": "No history at all",
+  "note": "First-time visitor.",
+  "counts": {}
+ }
+}
